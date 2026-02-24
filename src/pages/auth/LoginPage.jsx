@@ -1,12 +1,14 @@
 import React, { useState } from "react";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { Formik, Form, Field, ErrorMessage } from "formik";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { loginSchema, registerSchema } from "../../utils/validation";
+import PasswordInput from "../../components/common/PasswordInput";
+import { BASE_URL } from "../../utils/constants";
 
 const LoginPage = () => {
+  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   // Initial form values
   const initialValues = {
@@ -18,16 +20,28 @@ const LoginPage = () => {
   };
 
   // Form submission handler
-  const handleSubmit = (values, { setSubmitting }) => {
-    if (isLogin) {
-      // Send only email + password to login API
-      const { email, password } = values;
-      console.log("Login data:", { email, password });
-    } else {
-      // Send full register data including confirmPassword
-      console.log("Register data:", values);
+  const handleSubmit = async (values, { setSubmitting }) => {
+    try {
+      if (isLogin) {
+        // Send only email + password to login API
+        const { email, password } = values;
+        const data = await axios.post(
+          `${BASE_URL}/auth/login`,
+          { email, password },
+          {
+            withCredentials: true, // to receive httpOnly cookie
+          },
+        );
+        console.log(data);
+        setSubmitting(false);
+        console.log("Login data:", { email, password });
+      } else {
+        // Send full register data including confirmPassword
+        console.log("Register data:", values);
+      }
+    } catch (error) {
+      console.error(error.message);
     }
-    setTimeout(() => setSubmitting(false), 1000);
   };
 
   return (
@@ -96,50 +110,14 @@ const LoginPage = () => {
                   />
                 </div>
 
-                {/* Password */}
-                <div className="relative">
-                  <Field
-                    type={showPassword ? "text" : "password"}
-                    name="password"
-                    placeholder="Password"
-                    className="input input-bordered w-full pr-10 focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
-                  />
-                  <span
-                    className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </span>
-                  <ErrorMessage
-                    name="password"
-                    component="div"
-                    className="text-red-500 text-sm mt-1"
-                  />
-                </div>
+                <PasswordInput password="password" placeholder="Password" />
 
                 {/* Confirm Password only for Register */}
                 {!isLogin && (
-                  <div className="relative">
-                    <Field
-                      type={showConfirmPassword ? "text" : "password"}
-                      name="confirmPassword"
-                      placeholder="Confirm Password"
-                      className="input input-bordered w-full pr-10 focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
-                    />
-                    <span
-                      className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500"
-                      onClick={() =>
-                        setShowConfirmPassword(!showConfirmPassword)
-                      }
-                    >
-                      {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                    </span>
-                    <ErrorMessage
-                      name="confirmPassword"
-                      component="div"
-                      className="text-red-500 text-sm mt-1"
-                    />
-                  </div>
+                  <PasswordInput
+                    password="confirmPassword"
+                    placeholder="Confirm Password"
+                  />
                 )}
                 {/* Submit Button */}
                 <button
@@ -167,6 +145,16 @@ const LoginPage = () => {
               onClick={() => setIsLogin(!isLogin)}
             >
               {isLogin ? "Register" : "Login"}
+            </span>
+          </p>
+
+          <p className="text-center mt-4 text-sm text-gray-500">
+            Not remember your password?{" "}
+            <span
+              className="text-blue-500 font-semibold cursor-pointer hover:underline"
+              onClick={() => navigate("/forgot-password")}
+            >
+              Forgot Password
             </span>
           </p>
         </div>

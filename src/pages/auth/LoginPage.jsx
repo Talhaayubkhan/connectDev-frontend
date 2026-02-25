@@ -1,14 +1,17 @@
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import { useDispatch } from "react-redux";
 import { loginSchema, registerSchema } from "../../utils/validation";
 import PasswordInput from "../../components/common/PasswordInput";
-import { BASE_URL } from "../../utils/constants";
+import { setUser } from "../../store/features/auth/authSlice";
+import { loginUser } from "../../services/auth/userAuth";
+import { useMutation } from "@tanstack/react-query";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
+  const dispatch = useDispatch();
 
   // Initial form values
   const initialValues = {
@@ -19,22 +22,24 @@ const LoginPage = () => {
     confirmPassword: "", // only for register
   };
 
+  const loginMutation = useMutation({
+    mutationFn: loginUser,
+
+    onSuccess: (data) => {
+      dispatch(setUser(data?.data));
+      return navigate("/");
+    },
+    onError: (error) => {
+      console.error(error.response?.data?.message);
+    },
+  });
+
   // Form submission handler
-  const handleSubmit = async (values, { setSubmitting }) => {
+  const handleSubmit = async (values) => {
     try {
       if (isLogin) {
-        // Send only email + password to login API
         const { email, password } = values;
-        const data = await axios.post(
-          `${BASE_URL}/auth/login`,
-          { email, password },
-          {
-            withCredentials: true, // to receive httpOnly cookie
-          },
-        );
-        console.log(data);
-        setSubmitting(false);
-        console.log("Login data:", { email, password });
+        loginMutation.mutate({ email, password });
       } else {
         // Send full register data including confirmPassword
         console.log("Register data:", values);
@@ -57,7 +62,7 @@ const LoginPage = () => {
             validationSchema={isLogin ? loginSchema : registerSchema}
             onSubmit={handleSubmit}
           >
-            {({ isSubmitting }) => (
+            {() => (
               <Form className="space-y-4">
                 {/* Name field only for Register */}
                 {/* First & Last Name only for Register */}
@@ -123,15 +128,9 @@ const LoginPage = () => {
                 <button
                   type="submit"
                   className="btn btn-primary w-full mt-2 hover:scale-105 transition-transform duration-200"
-                  disabled={isSubmitting}
+                  disabled={loginMutation.isPending}
                 >
-                  {isSubmitting
-                    ? isLogin
-                      ? "Logging in..."
-                      : "Registering..."
-                    : isLogin
-                      ? "Login"
-                      : "Register"}
+                  {loginMutation.isPending ? "Logging in..." : "Login"}
                 </button>
               </Form>
             )}

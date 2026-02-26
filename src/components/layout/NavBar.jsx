@@ -1,117 +1,135 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useDispatch, useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
-import { logoutUser } from "../../services/auth/userAuth";
-import { clearUser } from "../../store/features/auth/authSlice";
-import { toast } from "react-toastify";
+import { Link, useLocation } from "react-router-dom";
 import PopUp from "../common/PopUp";
 import { useState } from "react";
 import { DEFAULT_AVATAR } from "../../utils/constants";
+import { useSelector } from "react-redux";
+import { useLogoutMutation } from "../../hooks/auth/useAuthMutation";
+import { FiUser, FiSettings } from "react-icons/fi";
+import { TbLogout } from "react-icons/tb";
 
 const NavBar = () => {
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const user = useSelector((state) => state?.auth?.user);
-
-  const logoutMutation = useMutation({
-    mutationFn: logoutUser,
-    onSuccess: () => {
-      dispatch(clearUser());
-      queryClient.clear();
-      toast.success("Logged out successfully");
-      navigate("/login");
-    },
-    onError: (error) => {
-      const message =
-        error?.response?.data?.message || "Logout failed. Try again.";
-      toast.error(message);
-    },
-  });
-
-  const handleLogout = () => {
-    // Just show the popup, don't call mutate yet
-    setShowLogoutPopup(true);
-  };
+  const location = useLocation();
+  const logoutMutation = useLogoutMutation();
 
   const handleConfirmLogout = () => {
-    setShowLogoutPopup(false);
+    // ✅ one single place logout is called — no duplication
     logoutMutation.mutate();
   };
 
-  const handleCancelLogout = () => {
-    setShowLogoutPopup(false);
-  };
   return (
-    <div className="navbar bg-base-300 shadow-sm">
-      <div className="flex-1">
-        <Link to="/" className="btn btn-ghost text-xl">
-          ConnectDEV
-        </Link>
-      </div>
-
-      <div className="flex gap-2 items-center">
-        <div className="dropdown dropdown-end">
-          <div
-            tabIndex={0}
-            role="button"
-            className="btn btn-ghost btn-circle avatar"
+    <>
+      <div className="navbar bg-base-300 shadow-sm px-4">
+        {/* Brand */}
+        <div className="flex-1">
+          <Link
+            to="/"
+            className="btn btn-ghost text-lg font-bold tracking-tight"
           >
-            <div className="w-10 rounded-full">
-              {/* ✅ Fallback to default avatar if photoURL missing */}
-              <img
-                alt={user?.firstName || "User avatar"}
-                src={user?.photoURL || DEFAULT_AVATAR}
-                onError={(e) => {
-                  e.currentTarget.src = DEFAULT_AVATAR;
-                }}
-              />
-            </div>
+            Connect<span className="text-primary">DEV</span>
+          </Link>
+        </div>
+
+        {/* Right side */}
+        <div className="flex items-center gap-2">
+          {/* Desktop nav links */}
+          <div className="hidden sm:flex items-center gap-1">
+            <Link
+              to="/"
+              className={`btn btn-ghost btn-sm ${location.pathname === "/" ? "btn-active" : ""}`}
+            >
+              Feed
+            </Link>
+            <Link
+              to="/connections"
+              className={`btn btn-ghost btn-sm ${location.pathname === "/connections" ? "btn-active" : ""}`}
+            >
+              Connections
+            </Link>
           </div>
 
-          <ul
-            tabIndex={0}
-            className="menu menu-sm dropdown-content bg-base-100 rounded-box z-10 mt-3 w-52 p-2 shadow"
-          >
-            {/* ✅ Show user's name so they know whose account this is */}
-            {user?.firstName && (
-              <li className="px-3 py-1 text-sm font-semibold text-gray-500 cursor-default">
-                {user.firstName} {user.lastName}
+          {/* Avatar dropdown */}
+          <div className="dropdown dropdown-end">
+            <div
+              tabIndex={0}
+              role="button"
+              className="btn btn-ghost btn-circle avatar online"
+            >
+              <div className="w-9 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1">
+                <img
+                  alt={user?.firstName || "User avatar"}
+                  src={user?.photoURL || DEFAULT_AVATAR}
+                  onError={(e) => {
+                    e.currentTarget.src = DEFAULT_AVATAR;
+                  }}
+                />
+              </div>
+            </div>
+
+            <ul
+              tabIndex={0}
+              className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 mt-3 w-56 p-2 shadow-xl border border-base-300"
+            >
+              {/* User info header */}
+              {user?.firstName && (
+                <>
+                  <li className="px-3 py-2 cursor-default">
+                    <div className="flex flex-col gap-0 hover:bg-transparent focus:bg-transparent active:bg-transparent">
+                      <span className="font-semibold text-base-content text-sm">
+                        {user.firstName} {user.lastName}
+                      </span>
+                      <span className="text-xs text-base-content/50">
+                        {user.email}
+                      </span>
+                    </div>
+                  </li>
+                  <div className="divider my-0" />
+                </>
+              )}
+
+              <li>
+                <Link
+                  to="/profile"
+                  className={`flex items-center gap-2 ${location.pathname === "/profile" ? "active" : ""}`}
+                >
+                  <FiUser size={14} /> Profile
+                </Link>
               </li>
-            )}
 
-            <li>
-              <Link to="/profile" className="justify-between">
-                Profile
-                <span className="badge">New</span>
-              </Link>
-            </li>
+              <li>
+                <Link to="/settings" className="flex items-center gap-2">
+                  <FiSettings size={14} /> Settings
+                </Link>
+              </li>
 
-            <li>
-              <a>Settings</a>
-            </li>
+              <div className="divider my-0" />
 
-            <li>
-              <button
-                onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-                className="text-left text-red-500 hover:text-red-600"
-              >
-                {logoutMutation.isPending ? "Logging out..." : "Logout"}
-              </button>
-            </li>
-          </ul>
+              <li>
+                <button
+                  onClick={() => setShowLogoutPopup(true)}
+                  disabled={logoutMutation.isPending}
+                  className="flex items-center gap-2 text-error hover:bg-error/10"
+                >
+                  <TbLogout size={15} />
+                  {logoutMutation.isPending ? "Logging out..." : "Logout"}
+                </button>
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
+
+      {/* Popup rendered outside navbar to avoid z-index issues */}
       {showLogoutPopup && (
         <PopUp
-          message="Are you sure you want to logout?"
+          message="You'll need to sign in again."
           onConfirm={handleConfirmLogout}
-          onCancel={handleCancelLogout}
+          onCancel={() => setShowLogoutPopup(false)}
+          isLoading={logoutMutation.isPending}
         />
       )}
-    </div>
+    </>
   );
 };
 

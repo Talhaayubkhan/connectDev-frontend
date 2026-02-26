@@ -1,18 +1,16 @@
 import React, { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
 import { loginSchema, registerSchema } from "../../utils/validation";
 import PasswordInput from "../../components/common/PasswordInput";
-import { setUser } from "../../store/features/auth/authSlice";
-import { loginUser } from "../../services/auth/userAuth";
-import { useMutation } from "@tanstack/react-query";
+import { useLoginMutation } from "../../hooks/auth/useAuthMutation";
 import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
-  const dispatch = useDispatch();
+
+  const loginMutation = useLoginMutation();
 
   const initialValues = {
     firstName: "",
@@ -22,28 +20,19 @@ const LoginPage = () => {
     confirmPassword: "",
   };
 
-  const loginMutation = useMutation({
-    mutationFn: loginUser,
-    onSuccess: (response) => {
-      const userData = response?.data;
-      dispatch(setUser(userData));
-      toast.success("Login successful!");
-      navigate("/");
-    },
-    onError: (error) => {
-      const message =
-        error?.response?.data?.message ||
-        "Something went wrong. Please try again.";
-      toast.error(message);
-    },
-  });
-
-  const handleSubmit = (values) => {
+  const handleSubmit = (values, { resetForm }) => {
     if (isLogin) {
       const { email, password } = values;
-      loginMutation.mutate({ email, password });
+      // ✅ just mutate — hook handles toast + navigate
+      loginMutation.mutate(
+        { email, password },
+        {
+          onSuccess: () => {
+            resetForm();
+          },
+        },
+      );
     } else {
-      // wire register mutation here when ready
       console.log("Register data:", values);
     }
   };

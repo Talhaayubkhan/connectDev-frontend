@@ -1,27 +1,13 @@
-import { useMutation } from "@tanstack/react-query";
-import { Formik, Form, Field, ErrorMessage } from "formik"; // ✅ added ErrorMessage
-import { toast } from "react-toastify";
+import { Formik, Form } from "formik";
 import { FiLock, FiX } from "react-icons/fi";
 import { confirmPasswordSchema } from "../../utils/validation";
-
-// import { changePassword } from "../../services/auth/userAuth";
+import PasswordInput from "../../components/common/PasswordInput";
+import { useChangePasswordMutation } from "../../hooks/auth/useAuthMutation";
+import { toast } from "react-toastify";
 
 const ProfilePasswordChange = ({ isOpen, onClose }) => {
-  const passwordMutation = useMutation({
-    mutationFn: async (data) => {
-      // replace with: return await changePassword(data);
-      return new Promise((res) => setTimeout(() => res(data), 800));
-    },
-    onSuccess: () => {
-      toast.success("Password changed successfully!");
-      onClose();
-    },
-    onError: (error) => {
-      const message =
-        error?.response?.data?.message || "Password change failed.";
-      toast.error(message);
-    },
-  });
+  const passwordMutation = useChangePasswordMutation();
+  // console.log(passwordMutation);
 
   const initialValues = {
     currentPassword: "",
@@ -29,15 +15,19 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
     confirmPassword: "",
   };
 
-  // ✅ resetForm added so fields clear after success
   const handleConfirmPassword = (values, { resetForm }) => {
     const { currentPassword, newPassword } = values;
     passwordMutation.mutate(
       { currentPassword, newPassword },
-      { onSuccess: () => resetForm() },
+      {
+        onSuccess: () => {
+          toast.success("Password changed successfully!");
+          resetForm();
+          onClose();
+        },
+      },
     );
   };
-
   if (!isOpen) return null;
 
   return (
@@ -51,7 +41,7 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
       >
         {/* Header */}
         <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold flex items-center gap-2">
+          <h2 className="text-xl font-bold flex items-center gap-2">
             <FiLock size={18} /> Change Password
           </h2>
           <button className="btn btn-ghost btn-sm btn-circle" onClick={onClose}>
@@ -68,57 +58,22 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
         >
           {() => (
             <Form className="flex flex-col gap-4">
-              <div>
-                <label className="label">
-                  <span className="label-text">Current Password</span>
-                </label>
-                <Field
-                  name="currentPassword"
-                  type="password"
-                  placeholder="Current password"
-                  className="input input-bordered w-full"
-                />
-                {/* ✅ now errors actually show */}
-                <ErrorMessage
-                  name="currentPassword"
-                  component="div"
-                  className="text-error text-xs mt-1"
-                />
-              </div>
-
-              <div>
-                <label className="label">
-                  <span className="label-text">New Password</span>
-                </label>
-                <Field
-                  name="newPassword"
-                  type="password"
-                  placeholder="New password"
-                  className="input input-bordered w-full"
-                />
-                <ErrorMessage
-                  name="newPassword"
-                  component="div"
-                  className="text-error text-xs mt-1"
-                />
-              </div>
-
-              <div>
-                <label className="label">
-                  <span className="label-text">Confirm New Password</span>
-                </label>
-                <Field
-                  name="confirmPassword"
-                  type="password"
-                  placeholder="Confirm new password"
-                  className="input input-bordered w-full"
-                />
-                <ErrorMessage
-                  name="confirmPassword"
-                  component="div"
-                  className="text-error text-xs mt-1"
-                />
-              </div>
+              {/* ✅ label passed directly — no wrapper divs needed */}
+              <PasswordInput
+                password="currentPassword"
+                placeholder="Current password"
+                label="Current Password"
+              />
+              <PasswordInput
+                password="newPassword"
+                placeholder="New password"
+                label="New Password"
+              />
+              <PasswordInput
+                password="confirmPassword"
+                placeholder="Confirm new password"
+                label="Confirm New Password"
+              />
 
               <button
                 type="submit"

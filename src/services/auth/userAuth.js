@@ -10,3 +10,11 @@ export const logoutUser = async () => {
   const response = await apiClient.post("auth/logout");
   return response.data;
 };
+
+export const changePassword = async ({ currentPassword, newPassword }) => {
+  const response = await apiClient.patch("profile/changePassword", {
+    currentPassword,
+    newPassword,
+  });
+  return response.data;
+};

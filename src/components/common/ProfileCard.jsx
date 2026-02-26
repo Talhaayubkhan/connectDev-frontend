@@ -1,4 +1,4 @@
-const DEFAULT_AVATAR = "https://api.dicebear.com/7.x/thumbs/svg?seed=default";
+import { DEFAULT_AVATAR } from "../../utils/constants";
 
 // showActions=true  → feed mode (Connect / Ignore buttons visible)
 // showActions=false → preview mode (no buttons, used in profile edit page)

@@ -29,3 +29,35 @@ export const confirmPasswordSchema = Yup.object().shape({
     .oneOf([Yup.ref("newPassword"), null], "Passwords must match") // ✅ fixed ref
     .required("Confirm password is required"),
 });
+
+export const validateEditProfileSchema = Yup.object().shape({
+  firstName: Yup.string()
+    .min(2, "First name must be at least 2 characters")
+    .max(30, "First name too long")
+    .required("First name is required"),
+
+  lastName: Yup.string()
+    .min(2, "Last name must be at least 2 characters")
+    .max(30, "Last name too long")
+    .required("Last name is required"),
+
+  age: Yup.number()
+    .min(18, "You must be at least 18")
+    .max(100, "Invalid age")
+    .positive("Age cannot be negative")
+    .integer("Age must be a whole number")
+    .required("Age is required"),
+
+  gender: Yup.string()
+    .oneOf(["male", "female", "other"], "Please select a valid gender")
+    .required("Gender is required"),
+
+  photoURL: Yup.string().url("Must be a valid URL").nullable(),
+
+  about: Yup.string().max(300, "Bio cannot exceed 300 characters").nullable(),
+
+  skills: Yup.array()
+    .of(Yup.string().min(1))
+    .max(10, "You can add up to 10 skills only")
+    .nullable(),
+});

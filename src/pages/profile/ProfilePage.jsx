@@ -1,9 +1,6 @@
 import { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { useMutation } from "@tanstack/react-query";
+import { useSelector } from "react-redux";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { toast } from "react-toastify";
-import { setUser } from "../../store/features/auth/authSlice";
 import {
   FiUser,
   FiCalendar,
@@ -16,30 +13,16 @@ import {
 import { BsGenderAmbiguous } from "react-icons/bs";
 import ProfileCard from "../../components/common/ProfileCard";
 import ProfilePasswordChange from "./ProfilePasswordChange";
-
-// import { updateProfile } from "../../services/profile/updateProfile";
+import { useProfileUpdateMutation } from "../../hooks/profile/useUpdateMutation";
+import { DEFAULT_AVATAR, GENDER_OPTIONS } from "../../utils/constants";
+import { validateEditProfileSchema } from "../../utils/validation";
 
 const ProfilePage = () => {
-  const dispatch = useDispatch();
   const user = useSelector((state) => state?.auth?.user);
   const [skillInput, setSkillInput] = useState("");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
 
-  const updateMutation = useMutation({
-    mutationFn: async (data) => {
-      // replace with: return await updateProfile(data);
-      return new Promise((res) => setTimeout(() => res({ data }), 800));
-    },
-    onSuccess: (res) => {
-      dispatch(setUser(res.data));
-      toast.success("Profile updated!");
-    },
-    onError: (error) => {
-      const message =
-        error?.response?.data?.message || "Update failed. Try again.";
-      toast.error(message);
-    },
-  });
+  const updateMutation = useProfileUpdateMutation();
 
   const initialValues = {
     firstName: user?.firstName || "",
@@ -61,6 +44,7 @@ const ProfilePage = () => {
         <Formik
           initialValues={initialValues}
           enableReinitialize
+          validationSchema={validateEditProfileSchema}
           onSubmit={(values) => updateMutation.mutate(values)}
         >
           {({ values, setFieldValue }) => (
@@ -131,15 +115,17 @@ const ProfilePage = () => {
                               <BsGenderAmbiguous size={13} /> Gender
                             </span>
                           </label>
+
                           <Field
                             as="select"
                             name="gender"
                             className="select select-bordered w-full"
                           >
-                            <option value="">Select</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
+                            {GENDER_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
                           </Field>
                         </div>
                       </div>
@@ -153,7 +139,7 @@ const ProfilePage = () => {
                         </label>
                         <Field
                           name="photoURL"
-                          placeholder="https://..."
+                          placeholder={DEFAULT_AVATAR}
                           className="input input-bordered w-full"
                         />
                       </div>

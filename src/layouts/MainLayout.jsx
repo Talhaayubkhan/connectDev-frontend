@@ -3,48 +3,39 @@ import Navbar from "../components/layout/Navbar";
 import Footer from "../components/layout/Footer";
 import { setUser } from "../store/features/auth/authSlice";
 import { useDispatch } from "react-redux";
-import { useQuery } from "@tanstack/react-query";
-import { fetchProfile } from "../services/profile/fetchProfile";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
+import { useShowProfile } from "../hooks/profile/useShowProfile";
 
 const MainLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { isLoading, error, data } = useQuery({
-    queryKey: ["profile"],
-    queryFn: fetchProfile,
-    staleTime: 1000 * 60 * 5,
-    retry: 0,
-  });
+  const { isLoading, error, data } = useShowProfile();
 
-  // Sync fetched user into Redux store
   useEffect(() => {
     if (data) {
-      dispatch(setUser(data.data));
+      dispatch(setUser(data?.data)); // verify this matches your API response shape
     }
   }, [data, dispatch]);
 
-  // Handle errors with proper distinction
   useEffect(() => {
     if (!error) return;
 
     const status = error?.response?.status;
 
     if (status === 401 || status === 403) {
-      // Token missing or expired — silently redirect, no need to alarm user
       navigate("/login");
     } else if (status >= 500) {
       toast.error("Server error. Please try again later.");
+    } else if (!status) {
+      // ✅ network error — don't kick user to login
+      toast.error("Network error. Please check your connection.");
     } else {
-      // Network error, timeout, etc.
-      toast.error("Something went wrong. Please check your connection.");
-      navigate("/login");
+      toast.error("Something went wrong.");
     }
   }, [error, navigate]);
 
-  // Show loading screen while checking auth on refresh
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -53,7 +44,6 @@ const MainLayout = () => {
     );
   }
 
-  // Don't render layout if there's an auth error (avoids flash of protected content)
   if (error) return null;
 
   return (

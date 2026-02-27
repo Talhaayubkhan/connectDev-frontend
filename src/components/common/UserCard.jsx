@@ -1,11 +1,14 @@
-// ConnectionsCard.jsx
+// components/common/ConnectionCard.jsx
 import { DEFAULT_AVATAR } from "../../utils/constants";
-import { FiUser } from "react-icons/fi";
 import { BsGenderAmbiguous } from "react-icons/bs";
 import { FiCalendar } from "react-icons/fi";
 
-const ConnectionsCard = ({ data }) => {
-  const { firstName, lastName, photoURL, age, gender, about, skills } = data;
+// mode="connection" → shows Message button
+// mode="request"    → shows Accept / Reject buttons
+const ConnectionCard = ({ data, mode = "connection", onAccept, onReject }) => {
+  const user = mode === "request" ? data?.senderUserId : data;
+  const { firstName, lastName, photoURL, age, gender, about, skills } =
+    user || {};
 
   return (
     <div className="card bg-base-200 shadow-md hover:shadow-lg transition-shadow duration-200">
@@ -16,7 +19,7 @@ const ConnectionsCard = ({ data }) => {
             <div className="w-16 h-16 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1">
               <img
                 src={photoURL || DEFAULT_AVATAR}
-                alt={firstName}
+                alt={firstName || "User"}
                 onError={(e) => {
                   e.currentTarget.src = DEFAULT_AVATAR;
                 }}
@@ -49,7 +52,6 @@ const ConnectionsCard = ({ data }) => {
               </p>
             )}
 
-            {/* Skills */}
             {skills?.length > 0 && (
               <div className="flex flex-wrap gap-1 mt-2">
                 {skills.slice(0, 4).map((skill, i) => (
@@ -66,14 +68,33 @@ const ConnectionsCard = ({ data }) => {
             )}
           </div>
 
-          {/* Message button */}
-          <button className="btn btn-primary btn-sm">
-            <FiUser size={14} /> Message
-          </button>
+          {/* Actions — differ by mode */}
+          <div className="flex flex-col gap-2">
+            {mode === "connection" && (
+              <button className="btn btn-primary btn-sm">Message</button>
+            )}
+
+            {mode === "request" && (
+              <>
+                <button
+                  className="btn btn-success btn-sm"
+                  onClick={() => onAccept(data._id)}
+                >
+                  Accept
+                </button>
+                <button
+                  className="btn btn-error btn-sm btn-outline"
+                  onClick={() => onReject(data._id)}
+                >
+                  Reject
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default ConnectionsCard;
+export default ConnectionCard;

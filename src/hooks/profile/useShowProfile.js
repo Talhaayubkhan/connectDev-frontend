@@ -5,6 +5,5 @@ export const useShowProfile = () => {
   return useQuery({
     queryKey: ["profile"],
     queryFn: fetchProfile,
-    refetchOnWindowFocus: false, // ✅ don't refetch on tab switch
   });
 };

@@ -1,26 +1,11 @@
-import ConnectionsCard from "./ConnectionsCard";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
-import { toast } from "react-toastify";
 import { HiUserGroup } from "react-icons/hi";
-import { useShowConnections } from "../../hooks/connections/useShowConnections";
+import { useConnections } from "../../hooks/connections/useConnections";
+import UserCard from "../../components/common/UserCard";
+import ErrorPage from "../../components/common/ErrorPage";
 
 const ConnectionsPage = () => {
-  const navigate = useNavigate();
-  const { data, isLoading, error } = useShowConnections();
+  const { data: connections, isLoading, error } = useConnections();
 
-  // ✅ proper error handling
-  useEffect(() => {
-    if (!error) return;
-    const status = error?.response?.status;
-    if (status === 401 || status === 403) {
-      navigate("/login");
-    } else {
-      toast.error("Failed to load connections.");
-    }
-  }, [error, navigate]);
-
-  // loading state
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -29,10 +14,17 @@ const ConnectionsPage = () => {
     );
   }
 
-  const connections = data?.data;
+  if (error) {
+    return (
+      <ErrorPage
+        code="500"
+        message="Failed to load requests"
+        subMessage="Something went wrong. Please try again."
+      />
+    );
+  }
 
-  // ✅ safe empty check
-  if (!connections || connections.length === 0) {
+  if (!connections?.length) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-base-content/50">
         <HiUserGroup size={64} />
@@ -50,10 +42,9 @@ const ConnectionsPage = () => {
           {connections.length}
         </span>
       </h1>
-
       <div className="flex flex-col gap-4">
         {connections.map((connection) => (
-          <ConnectionsCard key={connection._id} data={connection} />
+          <UserCard key={connection._id} data={connection} mode="connection" />
         ))}
       </div>
     </div>

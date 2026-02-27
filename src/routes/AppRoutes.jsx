@@ -9,6 +9,7 @@ import ProfilePage from "../pages/profile/ProfilePage";
 import ErrorPage from "../components/common/ErrorPage";
 import { ToastContainer } from "react-toastify";
 import ConnectionsPage from "../pages/connections/ConnectionsPage";
+import RequestPage from "../pages/connections/RequestPage";
 
 const AppRoutes = () => {
   return (
@@ -29,6 +30,7 @@ const AppRoutes = () => {
           <Route index element={<FeedPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="connections" element={<ConnectionsPage />} />
+          <Route path="requests" element={<RequestPage />} />
 
           {/* Main 404 */}
           <Route path="*" element={<ErrorPage />} />

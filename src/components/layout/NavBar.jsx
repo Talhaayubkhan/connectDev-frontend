@@ -1,10 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import PopUp from "../common/PopUp";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DEFAULT_AVATAR } from "../../utils/constants";
 import { useSelector } from "react-redux";
 import { useLogoutMutation } from "../../hooks/auth/useAuthMutation";
-import { FiUser, FiSettings } from "react-icons/fi";
+
+import { FiUser, FiSettings, FiSun, FiMoon } from "react-icons/fi";
 import { TbLogout } from "react-icons/tb";
 
 const NavBar = () => {
@@ -14,7 +15,6 @@ const NavBar = () => {
   const logoutMutation = useLogoutMutation();
 
   const handleConfirmLogout = () => {
-    // ✅ one single place logout is called — no duplication
     logoutMutation.mutate();
   };
 
@@ -37,15 +37,29 @@ const NavBar = () => {
           <div className="hidden sm:flex items-center gap-1">
             <Link
               to="/"
-              className={`btn btn-ghost btn-sm ${location.pathname === "/" ? "btn-active" : ""}`}
+              className={`btn btn-ghost btn-sm ${
+                location.pathname === "/" ? "btn-active" : ""
+              }`}
             >
               Feed
             </Link>
+
             <Link
               to="/connections"
-              className={`btn btn-ghost btn-sm ${location.pathname === "/connections" ? "btn-active" : ""}`}
+              className={`btn btn-ghost btn-sm ${
+                location.pathname === "/connections" ? "btn-active" : ""
+              }`}
             >
               Connections
+            </Link>
+
+            <Link
+              to="/requests"
+              className={`btn btn-ghost btn-sm ${
+                location.pathname === "/requests" ? "btn-active" : ""
+              }`}
+            >
+              Requests
             </Link>
           </div>
 
@@ -71,17 +85,15 @@ const NavBar = () => {
               tabIndex={0}
               className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 mt-3 w-56 p-2 shadow-xl border border-base-300"
             >
-              {/* User info header */}
+              {/* User info */}
               {user?.firstName && (
                 <>
                   <li className="px-3 py-2 cursor-default">
-                    <div className="flex flex-col gap-0 hover:bg-transparent focus:bg-transparent active:bg-transparent">
-                      <span className="font-semibold text-base-content text-sm">
+                    <div className="flex flex-col">
+                      <span className="font-semibold text-sm">
                         {user.firstName} {user.lastName}
                       </span>
-                      <span className="text-xs text-base-content/50">
-                        {user.email}
-                      </span>
+                      <span className="text-xs opacity-60">{user.email}</span>
                     </div>
                   </li>
                   <div className="divider my-0" />
@@ -91,7 +103,9 @@ const NavBar = () => {
               <li>
                 <Link
                   to="/profile"
-                  className={`flex items-center gap-2 ${location.pathname === "/profile" ? "active" : ""}`}
+                  className={`flex items-center gap-2 ${
+                    location.pathname === "/profile" ? "active" : ""
+                  }`}
                 >
                   <FiUser size={14} /> Profile
                 </Link>
@@ -120,7 +134,7 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* Popup rendered outside navbar to avoid z-index issues */}
+      {/* Logout Popup */}
       {showLogoutPopup && (
         <PopUp
           message="You'll need to sign in again."

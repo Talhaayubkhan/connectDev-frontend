@@ -10,4 +10,12 @@ export const GENDER_OPTIONS = [
   { value: "female", label: "Female" },
   { value: "other", label: "Other" },
 ];
+
+// ── Query keys in one place so no typo mismatches ──────────────────────────
+// This is important — if you type ["request"] in one place and ["requests"]
+// in another, invalidateQueries won't work. Centralizing prevents that bug.
+export const CONNECTION_KEYS = {
+  connections: ["connections"],
+  requests: ["requests"],
+};
 // export const API_URL = { BASE_URL };

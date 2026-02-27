@@ -53,7 +53,7 @@ const ProfileCard = ({ profile, showActions = true }) => {
         {showActions && (
           <div className="flex gap-4 justify-center">
             <button className="btn btn-outline btn-error flex-1">Ignore</button>
-            <button className="btn btn-primary flex-1">Connect</button>
+            <button className="btn btn-primary flex-1">Interested</button>
           </div>
         )}
       </div>

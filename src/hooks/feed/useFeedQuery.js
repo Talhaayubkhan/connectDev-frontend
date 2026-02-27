@@ -3,7 +3,15 @@ import { fetchFeedProfiles } from "../../services/feed/feedService";
 
 export const useFeedQuery = () => {
   return useQuery({
-    queryKey: ["feedProfiles"],
-    queryFn: fetchFeedProfiles,
+    queryKey: ["feed"],
+    queryFn: async () => {
+      try {
+        const res = await fetchFeedProfiles();
+        return res || [];
+      } catch (err) {
+        if (err?.response?.status === 404) return [];
+        throw err;
+      }
+    },
   });
 };

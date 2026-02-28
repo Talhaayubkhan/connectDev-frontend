@@ -61,3 +61,7 @@ export const validateEditProfileSchema = Yup.object().shape({
     .max(10, "You can add up to 10 skills only")
     .nullable(),
 });
+
+export const forgotSchema = Yup.object({
+  email: Yup.string().email("Invalid email").required("Email is required"),
+});

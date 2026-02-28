@@ -1,16 +1,20 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { loginSchema, registerSchema } from "../../utils/validation";
 import PasswordInput from "../../components/common/PasswordInput";
-import { useLoginMutation } from "../../hooks/auth/useAuthMutation";
+import {
+  useLoginMutation,
+  useSignupMutation,
+} from "../../hooks/auth/useAuthMutation";
 import { toast } from "react-toastify";
+import { FiUser, FiMail } from "react-icons/fi";
+import { HiCode } from "react-icons/hi";
 
 const LoginPage = () => {
-  const navigate = useNavigate();
   const [isLogin, setIsLogin] = useState(true);
-
   const loginMutation = useLoginMutation();
+  const registerMutation = useSignupMutation();
 
   const initialValues = {
     firstName: "",
@@ -22,136 +26,167 @@ const LoginPage = () => {
 
   const handleSubmit = (values, { resetForm }) => {
     if (isLogin) {
-      const { email, password } = values;
       loginMutation.mutate(
-        { email, password },
-        {
-          onSuccess: () => {
-            resetForm();
-          },
-        },
+        { email: values.email, password: values.password },
+        { onSuccess: () => resetForm() },
       );
     } else {
-      console.log("Register data:", values);
+      registerMutation.mutate(values, {
+        onSuccess: () => {
+          toast.success("Account created! Please sign in.");
+          resetForm();
+          setIsLogin(true);
+        },
+      });
     }
   };
 
-  // Reset form fields when toggling between login/register
-  const handleToggle = (resetForm) => {
-    resetForm();
-    setIsLogin((prev) => !prev);
-  };
+  const isPending = loginMutation.isPending || registerMutation.isPending;
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-indigo-50 to-blue-100 p-4">
-      <div className="card w-full max-w-sm shadow-2xl bg-base-200 rounded-lg overflow-hidden">
-        <div className="p-6">
-          <h2 className="text-3xl font-bold text-center mb-6">
-            {isLogin ? "Login" : "Register"}
-          </h2>
+    <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
+        {/* Card */}
+        <div className="card bg-base-100 shadow-xl">
+          <div className="card-body gap-5">
+            {/* Tab toggle */}
+            <div role="tablist" className="tabs tabs-boxed bg-base-200">
+              <button
+                role="tab"
+                className={`tab flex-1 transition-all ${isLogin ? "tab-active" : ""}`}
+                onClick={() => setIsLogin(true)}
+              >
+                Login
+              </button>
+              <button
+                role="tab"
+                className={`tab flex-1 transition-all ${!isLogin ? "tab-active" : ""}`}
+                onClick={() => setIsLogin(false)}
+              >
+                Register
+              </button>
+            </div>
 
-          <Formik
-            initialValues={initialValues}
-            validationSchema={isLogin ? loginSchema : registerSchema}
-            onSubmit={handleSubmit}
-          >
-            {({ resetForm }) => (
-              <Form className="space-y-4">
-                {!isLogin && (
-                  <div className="flex gap-2">
-                    <div className="flex-1">
-                      <Field
-                        type="text"
-                        name="firstName"
-                        placeholder="First Name"
-                        className="input input-bordered w-full focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
-                      />
-                      <ErrorMessage
-                        name="firstName"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
+            <Formik
+              initialValues={initialValues}
+              validationSchema={isLogin ? loginSchema : registerSchema}
+              onSubmit={handleSubmit}
+              enableReinitialize
+            >
+              {() => (
+                <Form className="flex flex-col gap-4">
+                  {/* Name fields — register only */}
+                  {!isLogin && (
+                    <div className="flex gap-3">
+                      <div className="flex-1">
+                        <label className="label">
+                          <span className="label-text flex items-center gap-1">
+                            <FiUser size={12} /> First Name
+                          </span>
+                        </label>
+                        <Field
+                          name="firstName"
+                          placeholder="First name"
+                          className="input input-bordered w-full"
+                        />
+                        <ErrorMessage
+                          name="firstName"
+                          component="div"
+                          className="text-error text-xs mt-1"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="label">
+                          <span className="label-text flex items-center gap-1">
+                            <FiUser size={12} /> Last Name
+                          </span>
+                        </label>
+                        <Field
+                          name="lastName"
+                          placeholder="Last name"
+                          className="input input-bordered w-full"
+                        />
+                        <ErrorMessage
+                          name="lastName"
+                          component="div"
+                          className="text-error text-xs mt-1"
+                        />
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <Field
-                        type="text"
-                        name="lastName"
-                        placeholder="Last Name"
-                        className="input input-bordered w-full focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
-                      />
-                      <ErrorMessage
-                        name="lastName"
-                        component="div"
-                        className="text-red-500 text-sm mt-1"
-                      />
-                    </div>
+                  )}
+
+                  {/* Email */}
+                  <div>
+                    <label className="label">
+                      <span className="label-text flex items-center gap-1">
+                        <FiMail size={12} /> Email
+                      </span>
+                    </label>
+                    <Field
+                      type="email"
+                      name="email"
+                      placeholder="you@example.com"
+                      className="input input-bordered w-full"
+                    />
+                    <ErrorMessage
+                      name="email"
+                      component="div"
+                      className="text-error text-xs mt-1"
+                    />
                   </div>
-                )}
 
-                <div>
-                  <Field
-                    type="email"
-                    name="email"
-                    placeholder="Email"
-                    className="input input-bordered w-full focus:border-blue-500 focus:ring focus:ring-blue-200 transition"
-                  />
-                  <ErrorMessage
-                    name="email"
-                    component="div"
-                    className="text-red-500 text-sm mt-1"
-                  />
-                </div>
-
-                <PasswordInput password="password" placeholder="Password" />
-
-                {!isLogin && (
+                  {/* Password */}
                   <PasswordInput
-                    password="confirmPassword"
-                    placeholder="Confirm Password"
+                    password="password"
+                    placeholder="Password"
+                    label="Password"
                   />
-                )}
 
-                <button
-                  type="submit"
-                  className="btn btn-primary w-full mt-2 hover:scale-105 transition-transform duration-200"
-                  disabled={loginMutation.isPending}
-                >
-                  {/* ✅ Fixed: shows correct label based on mode + loading state */}
-                  {loginMutation.isPending
-                    ? isLogin
-                      ? "Logging in..."
-                      : "Registering..."
-                    : isLogin
-                      ? "Login"
-                      : "Register"}
-                </button>
+                  {/* Confirm password — register only */}
+                  {!isLogin && (
+                    <PasswordInput
+                      password="confirmPassword"
+                      placeholder="Confirm password"
+                      label="Confirm Password"
+                    />
+                  )}
 
-                <p className="text-center mt-4 text-sm text-gray-500">
-                  {isLogin
-                    ? "Don't have an account?"
-                    : "Already have an account?"}{" "}
-                  <span
-                    className="text-blue-500 font-semibold cursor-pointer hover:underline"
-                    // ✅ Fixed: resets form fields on toggle so stale values don't carry over
-                    onClick={() => handleToggle(resetForm)}
+                  {/* Forgot password — login only */}
+                  {isLogin && (
+                    <div className="text-right -mt-2">
+                      <Link
+                        to="/forgot-password"
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </Link>
+                    </div>
+                  )}
+
+                  {/* Submit */}
+                  <button
+                    type="submit"
+                    className="btn btn-primary w-full mt-1"
+                    disabled={isPending}
                   >
-                    {isLogin ? "Register" : "Login"}
-                  </span>
-                </p>
-
-                <p className="text-center text-sm text-gray-500">
-                  Not remember your password?{" "}
-                  <span
-                    className="text-blue-500 font-semibold cursor-pointer hover:underline"
-                    onClick={() => navigate("/forgot-password")}
-                  >
-                    Forgot Password
-                  </span>
-                </p>
-              </Form>
-            )}
-          </Formik>
+                    {isPending ? (
+                      <span className="loading loading-spinner loading-sm" />
+                    ) : isLogin ? (
+                      "Sign In"
+                    ) : (
+                      "Create Account"
+                    )}
+                  </button>
+                </Form>
+              )}
+            </Formik>
+          </div>
         </div>
+
+        {/* Footer note */}
+        <p className="text-center text-xs text-base-content/40 mt-6">
+          By continuing you agree to our Terms of Service.
+        </p>
       </div>
     </div>
   );

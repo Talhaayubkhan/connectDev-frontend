@@ -5,10 +5,11 @@ import {
   changePassword,
   loginUser,
   logoutUser,
+  registerUser,
 } from "../../services/auth/userAuth";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-// hooks/auth/useAuthMutation.js
+
 export const useLoginMutation = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -16,13 +17,27 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: loginUser,
     onSuccess: (response) => {
-      dispatch(setUser(response)); // ✅ fixed double unwrap
+      dispatch(setUser(response));
       toast.success("Login successful!");
       navigate("/");
     },
     onError: (error) => {
       const message =
         error?.response?.data?.message || "Login failed. Try again.";
+      toast.error(message);
+    },
+  });
+};
+
+export const useSignupMutation = () => {
+  // WHY no dispatch here?
+  // Backend returns no token on register — just user data.
+  // Without a token we can't authenticate the user in Redux.
+  return useMutation({
+    mutationFn: registerUser,
+    onError: (error) => {
+      const message =
+        error?.response?.data?.message || "Register failed. Try again.";
       toast.error(message);
     },
   });
@@ -46,6 +61,7 @@ export const useLogoutMutation = () => {
     },
   });
 };
+
 export const useChangePasswordMutation = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();

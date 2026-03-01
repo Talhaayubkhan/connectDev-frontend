@@ -5,12 +5,12 @@ import {
 } from "../../hooks/connections/useConnections";
 import UserCard from "../../components/common/UserCard";
 import ErrorPage from "../../components/common/ErrorPage";
+import { useState } from "react";
 
 const RequestsPage = () => {
-  // recevied request
   const { data: requests, isLoading, error } = useConnectionRequests();
-  // for accept/reject -
   const reviewRequestMutation = useReviewConnectionRequest();
+  const [pendingId, setPendingId] = useState(null);
 
   if (isLoading) {
     return (
@@ -30,7 +30,6 @@ const RequestsPage = () => {
     );
   }
 
-  // ✅ data is now clean array from hook — no more data?.data
   if (!requests?.length) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-base-content/50">
@@ -40,6 +39,25 @@ const RequestsPage = () => {
       </div>
     );
   }
+
+  const handleReview = (requestId, status) => {
+    // WHY guard with pendingId?
+    // Prevents clicking another card while one is already loading.
+    // One action at a time — clean and safe.
+    if (pendingId) return;
+
+    setPendingId({ id: requestId, status });
+
+    reviewRequestMutation.mutate(
+      { status, requestId },
+      {
+        // WHY onSettled not onSuccess?
+        // onSettled fires on both success AND error.
+        // pendingId always clears — button never gets stuck loading.
+        onSettled: () => setPendingId(null),
+      },
+    );
+  };
 
   return (
     <div className="max-w-3xl mx-auto py-10 px-4">
@@ -55,18 +73,12 @@ const RequestsPage = () => {
             key={request._id}
             data={request}
             mode="request"
-            onAccept={(id) =>
-              reviewRequestMutation.mutate({
-                status: "accepted",
-                requestId: id,
-              })
-            }
-            onReject={(id) =>
-              reviewRequestMutation.mutate({
-                status: "rejected",
-                requestId: id,
-              })
-            }
+            // WHY pass pendingId down?
+            // UserCard needs to know which button to spin.
+            // It checks: is this card's id == pendingId.id?
+            pendingId={pendingId}
+            onAccept={(id) => handleReview(id, "accepted")}
+            onReject={(id) => handleReview(id, "rejected")}
           />
         ))}
       </div>

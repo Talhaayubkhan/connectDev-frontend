@@ -2,24 +2,26 @@ import { useSearchParams } from "react-router-dom";
 import { Formik, Form } from "formik";
 import PasswordInput from "../../components/common/PasswordInput";
 import ErrorPage from "../../components/common/ErrorPage";
+import { useResetPasswordMutation } from "../../hooks/auth/useAuthMutation";
+import { resetPasswordSchema } from "../../utils/validation";
 
 const ResetPasswordPage = () => {
   // Read token from URL
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
+  const resetPasswordMutation = useResetPasswordMutation();
 
   const initialValues = {
-    password: "",
+    newPassword: "",
     confirmPassword: "",
   };
 
-  const handleSubmit = (values, { setSubmitting }) => {
+  const handleSubmit = (values) => {
+    resetPasswordMutation.mutate({ token });
     console.log("Reset password data:", {
       token,
       ...values,
     });
-
-    setTimeout(() => setSubmitting(false), 1000);
   };
 
   return (
@@ -30,8 +32,12 @@ const ResetPasswordPage = () => {
         {!token ? (
           <ErrorPage code="400" message="Invalid Reset Link" />
         ) : (
-          <Formik initialValues={initialValues} onSubmit={handleSubmit}>
-            {({ isSubmitting }) => (
+          <Formik
+            initialValues={initialValues}
+            onSubmit={handleSubmit}
+            validationSchema={resetPasswordSchema}
+          >
+            {() => (
               <Form className="space-y-4">
                 <PasswordInput name="password" placeholder="New Password" />
 
@@ -43,9 +49,15 @@ const ResetPasswordPage = () => {
                 <button
                   type="submit"
                   className="btn btn-primary w-full"
-                  disabled={isSubmitting}
+                  disabled={resetPasswordMutation.isPending}
                 >
-                  {isSubmitting ? "Resetting..." : "Reset Password"}
+                  {resetPasswordMutation.isPending && (
+                    <span className="loading loading-spinner loading-sm" />
+                  )}
+                  :{" "}
+                  {resetPasswordMutation.isPending
+                    ? "Resetting..."
+                    : "Reset Password"}
                 </button>
               </Form>
             )}

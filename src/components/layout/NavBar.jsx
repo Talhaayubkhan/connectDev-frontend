@@ -1,11 +1,11 @@
 import { Link, useLocation } from "react-router-dom";
 import PopUp from "../common/PopUp";
-import { useState, useEffect } from "react";
-import { DEFAULT_AVATAR } from "../../utils/constants";
+import { useState } from "react";
+import { DEFAULT_AVATAR, formatLastSeen } from "../../utils/constants";
 import { useSelector } from "react-redux";
 import { useLogoutMutation } from "../../hooks/auth/useAuthMutation";
-
-import { FiUser, FiSettings, FiSun, FiMoon } from "react-icons/fi";
+import { AnimatePresence } from "framer-motion";
+import { FiUser, FiSettings } from "react-icons/fi";
 import { TbLogout } from "react-icons/tb";
 
 const NavBar = () => {
@@ -37,27 +37,19 @@ const NavBar = () => {
           <div className="hidden sm:flex items-center gap-1">
             <Link
               to="/"
-              className={`btn btn-ghost btn-sm ${
-                location.pathname === "/" ? "btn-active" : ""
-              }`}
+              className={`btn btn-ghost btn-sm ${location.pathname === "/" ? "btn-active" : ""}`}
             >
               Feed
             </Link>
-
             <Link
               to="/connections"
-              className={`btn btn-ghost btn-sm ${
-                location.pathname === "/connections" ? "btn-active" : ""
-              }`}
+              className={`btn btn-ghost btn-sm ${location.pathname === "/connections" ? "btn-active" : ""}`}
             >
               Connections
             </Link>
-
             <Link
               to="/requests"
-              className={`btn btn-ghost btn-sm ${
-                location.pathname === "/requests" ? "btn-active" : ""
-              }`}
+              className={`btn btn-ghost btn-sm ${location.pathname === "/requests" ? "btn-active" : ""}`}
             >
               Requests
             </Link>
@@ -68,7 +60,13 @@ const NavBar = () => {
             <div
               tabIndex={0}
               role="button"
-              className="btn btn-ghost btn-circle avatar online"
+              // WHY conditional online/offline class?
+              // "online" = DaisyUI green dot, "offline" = grey dot.
+              // Before: hardcoded "online" — always green even if user is inactive.
+              // Now: reflects actual isActive value from backend.
+              className={`btn btn-ghost btn-circle avatar ${
+                user?.isActive ? "online" : "offline"
+              }`}
             >
               <div className="w-9 rounded-full ring ring-primary ring-offset-base-100 ring-offset-1">
                 <img
@@ -89,11 +87,28 @@ const NavBar = () => {
               {user?.firstName && (
                 <>
                   <li className="px-3 py-2 cursor-default">
-                    <div className="flex flex-col">
+                    <div className="flex flex-col gap-0.5">
                       <span className="font-semibold text-sm">
                         {user.firstName} {user.lastName}
                       </span>
                       <span className="text-xs opacity-60">{user.email}</span>
+
+                      {/* WHY show isActive + lastSeen here?
+                          User sees their own status in the dropdown.
+                          If active → green "Online" text.
+                          If inactive → "Last seen Xh ago" — like WhatsApp.
+                          Much more informative than just a dot. */}
+                      <span
+                        className={`text-xs font-medium mt-0.5 ${
+                          user?.isActive
+                            ? "text-success"
+                            : "text-base-content/40"
+                        }`}
+                      >
+                        {user?.isActive
+                          ? "● Online"
+                          : `Last seen ${formatLastSeen(user?.lastSeen)}`}
+                      </span>
                     </div>
                   </li>
                   <div className="divider my-0" />
@@ -134,15 +149,20 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* Logout Popup */}
-      {showLogoutPopup && (
-        <PopUp
-          message="You'll need to sign in again."
-          onConfirm={handleConfirmLogout}
-          onCancel={() => setShowLogoutPopup(false)}
-          isLoading={logoutMutation.isPending}
-        />
-      )}
+      {/* WHY AnimatePresence wrapping PopUp?
+          This is what enables the exit animation on the popup.
+          Without it — popup just disappears instantly when closed.
+          With it — popup fades + scales out smoothly. */}
+      <AnimatePresence>
+        {showLogoutPopup && (
+          <PopUp
+            message="You'll need to sign in again."
+            onConfirm={handleConfirmLogout}
+            onCancel={() => setShowLogoutPopup(false)}
+            isLoading={logoutMutation.isPending}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 };

@@ -4,16 +4,20 @@ import {
   reviewFeedRequests,
 } from "../../services/feed/feedService";
 import { toast } from "react-toastify";
-import { CONNECTION_KEYS } from "../../utils/constants";
+
 export const useFeedQuery = () => {
   return useQuery({
     queryKey: ["feed"],
     queryFn: async () => {
       try {
-        const res = await fetchFeedProfiles();
-        return res.data || [];
+        const result = await fetchFeedProfiles();
+        // WHY return whole result and not just users?
+        // We need hasNextPage for future pagination.
+        // Cache stores { users: [...], hasNextPage, page, limit }
+        return result;
       } catch (err) {
-        if (err?.response?.status === 404) return [];
+        if (err?.response?.status === 404)
+          return { users: [], hasNextPage: false };
         throw err;
       }
     },
@@ -26,15 +30,29 @@ export const useFeedRequestMutation = () => {
   return useMutation({
     mutationFn: ({ status, requestId }) =>
       reviewFeedRequests({ status, requestId }),
+
     onSuccess: (_, variables) => {
+      // WHY setQueryData instead of invalidateQueries?
+      // invalidateQueries = refetch entire feed → array rebuilds → counter resets
+      // setQueryData = remove just acted-on profile from cache → no refetch → smooth
+      queryClient.setQueryData(["feed"], (oldData) => {
+        if (!oldData) return { users: [], hasNextPage: false };
+        return {
+          ...oldData,
+          users: oldData.users.filter(
+            (profile) => profile._id !== variables.requestId,
+          ),
+        };
+      });
+
       const isInterested = variables.status === "interested";
       if (isInterested) {
-        toast.success(`You're interested in ${variables.name}!`);
+        toast.success(`Connection request sent to ${variables.name}!`);
       } else {
-        toast.info(`${variables.name} ignored.`);
+        toast.info(`${variables.name} skipped.`);
       }
-      // queryClient.invalidateQueries({ queryKey: ["feed"] });
     },
+
     onError: (error) => {
       toast.error(error?.response?.data?.message || "Action failed.");
     },

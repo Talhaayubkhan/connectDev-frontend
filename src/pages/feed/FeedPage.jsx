@@ -8,10 +8,11 @@ import ErrorPage from "../../components/common/ErrorPage";
 import { useState } from "react";
 
 const FeedPage = () => {
-  const { data: profiles, isLoading, error } = useFeedQuery();
+  const { data, isLoading, error } = useFeedQuery();
+  const users = data?.users || [];
+
   const requestsMutation = useFeedRequestMutation();
   const [pendingAction, setPendingAction] = useState(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
 
   if (isLoading) {
     return (
@@ -31,8 +32,9 @@ const FeedPage = () => {
     );
   }
 
-  // no profiles at all OR we've gone through all of them
-  if (!profiles?.length || currentIndex >= profiles.length) {
+  const currentProfile = users[0];
+
+  if (!currentProfile) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-4 text-base-content/50">
         <HiUserGroup size={64} />
@@ -44,29 +46,20 @@ const FeedPage = () => {
     );
   }
 
-  // current profile to show based on index
-  const currentProfile = profiles[currentIndex];
-
   const handleAction = (id, name, status) => {
+    if (requestsMutation.isPending) return;
     setPendingAction(status);
     requestsMutation.mutate(
       { status, requestId: id, name },
-      {
-        onSettled: () => {
-          setPendingAction(null);
-          setCurrentIndex((prev) => prev + 1);
-        },
-      },
+      { onSettled: () => setPendingAction(null) },
     );
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-      {/* Profile counter */}
       <p className="text-sm text-base-content/50">
-        {currentIndex + 1} / {profiles.length}
+        {users.length} {users.length === 1 ? "profile" : "profiles"} remaining
       </p>
-
       <ProfileCard
         profile={currentProfile}
         showActions={true}

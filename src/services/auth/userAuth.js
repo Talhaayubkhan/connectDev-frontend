@@ -2,7 +2,6 @@ import apiClient from "../apiClient";
 
 export const loginUser = async ({ email, password }) => {
   const response = await apiClient.post("auth/login", { email, password });
-
   return response.data;
 };
 
@@ -32,6 +31,18 @@ export const logoutUser = async () => {
 export const changePassword = async ({ currentPassword, newPassword }) => {
   const response = await apiClient.patch("profile/changePassword", {
     currentPassword,
+    newPassword,
+  });
+  return response.data;
+};
+
+export const forgotPassword = async ({ email }) => {
+  const response = await apiClient.post("auth/forgot-password", { email });
+  return response.data;
+};
+export const resetPassword = async ({ token, newPassword }) => {
+  const response = await apiClient.post("auth/reset-password", {
+    token,
     newPassword,
   });
   return response.data;

@@ -62,6 +62,16 @@ export const validateEditProfileSchema = Yup.object().shape({
     .nullable(),
 });
 
-export const forgotSchema = Yup.object({
+export const forgotPasswordSchema = Yup.object({
   email: Yup.string().email("Invalid email").required("Email is required"),
+});
+export const resetPasswordSchema = Yup.object({
+  newPassword: Yup.string()
+    .min(8, "Password must be at least 8 characters")
+    .matches(/[A-Z]/, "Must contain at least one uppercase letter")
+    .matches(/[0-9]/, "Must contain at least one number")
+    .required("New password is required"),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref("newPassword"), null], "Passwords must match") // ✅ fixed ref
+    .required("Confirm password is required"),
 });

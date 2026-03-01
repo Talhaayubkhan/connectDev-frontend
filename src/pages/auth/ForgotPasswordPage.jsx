@@ -1,28 +1,30 @@
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Link } from "react-router-dom";
 import { FiMail, FiArrowLeft } from "react-icons/fi";
-import { HiCode } from "react-icons/hi";
-import * as Yup from "yup";
-
-const forgotPasswordSchema = Yup.object().shape({
-  email: Yup.string().email("Invalid email").required("Email is required"),
-});
+import { forgotPasswordSchema } from "../../utils/validation";
+import { motion } from "framer-motion";
+import { useForgotPasswordMutation } from "../../hooks/auth/useAuthMutation";
 
 const ForgotPasswordPage = () => {
-  const handleSubmit = (values, { setSubmitting, resetForm }) => {
-    console.log("Send reset email:", values);
-    setTimeout(() => {
-      setSubmitting(false);
-      resetForm();
-      // replace with actual mutation when API is ready
-    }, 1000);
+  const forgotPasswordMutation = useForgotPasswordMutation();
+
+  const handleSubmit = (values, { resetForm }) => {
+    const { email } = values;
+    forgotPasswordMutation.mutate({ email }, { onSuccess: () => resetForm() });
   };
 
   return (
     <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        {/* Card */}
-        <div className="card bg-base-100 shadow-xl">
+        {/* WHY motion.div on card only?
+            Same entrance animation as LoginPage — consistent across auth pages.
+            y:32 → 0 + fade in. User feels the same "brand" on every auth page. */}
+        <motion.div
+          className="card bg-base-100 shadow-xl"
+          initial={{ opacity: 0, y: 32 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, ease: "easeOut" }}
+        >
           <div className="card-body gap-5">
             {/* Icon + heading */}
             <div className="flex flex-col items-center text-center gap-2">
@@ -42,7 +44,7 @@ const ForgotPasswordPage = () => {
               validationSchema={forgotPasswordSchema}
               onSubmit={handleSubmit}
             >
-              {({ isSubmitting }) => (
+              {() => (
                 <Form className="flex flex-col gap-4">
                   <div>
                     <label className="label">
@@ -62,20 +64,20 @@ const ForgotPasswordPage = () => {
                       className="text-error text-xs mt-1"
                     />
                   </div>
-
-                  <button
+                  <motion.button
                     type="submit"
-                    className="btn btn-primary w-full"
-                    disabled={isSubmitting}
+                    disabled={forgotPasswordMutation.isPending}
+                    className="btn btn-primary w-full mt-1"
+                    whileTap={{ scale: 0.97 }}
+                    transition={{ duration: 0.1 }}
                   >
-                    {isSubmitting ? (
+                    {forgotPasswordMutation.isPending && (
                       <span className="loading loading-spinner loading-sm" />
-                    ) : (
-                      "Send Reset Link"
                     )}
-                  </button>
-
-                  {/* Back to login */}
+                    {forgotPasswordMutation.isPending
+                      ? "Sending..."
+                      : "Send Reset Link"}
+                  </motion.button>
                   <Link
                     to="/login"
                     className="btn btn-ghost btn-sm w-full flex items-center gap-2"
@@ -86,14 +88,7 @@ const ForgotPasswordPage = () => {
               )}
             </Formik>
           </div>
-        </div>
-
-        <p className="text-center text-xs text-base-content/40 mt-6">
-          Remember your password?{" "}
-          <Link to="/login" className="text-primary hover:underline">
-            Sign in
-          </Link>
-        </p>
+        </motion.div>
       </div>
     </div>
   );

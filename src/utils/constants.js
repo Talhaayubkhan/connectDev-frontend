@@ -33,4 +33,9 @@ export const formatLastSeen = (lastSeen) => {
   return `${days}d ago`;
 };
 
+export const ROUTES = {
+  LOGIN: "/auth/login",
+  CHAT: "/chat",
+};
+
 // export const API_URL = { BASE_URL };

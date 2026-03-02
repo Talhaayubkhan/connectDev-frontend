@@ -1,5 +1,6 @@
 import { Formik, Form } from "formik";
 import { FiLock, FiX } from "react-icons/fi";
+import { motion } from "framer-motion";
 import { confirmPasswordSchema } from "../../utils/validation";
 import PasswordInput from "../../components/common/PasswordInput";
 import { useChangePasswordMutation } from "../../hooks/auth/useAuthMutation";
@@ -7,7 +8,6 @@ import { toast } from "react-toastify";
 
 const ProfilePasswordChange = ({ isOpen, onClose }) => {
   const passwordMutation = useChangePasswordMutation();
-  // console.log(passwordMutation);
 
   const initialValues = {
     currentPassword: "",
@@ -28,18 +28,26 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
       },
     );
   };
+
   if (!isOpen) return null;
 
   return (
-    <div
+    <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
       onClick={onClose}
     >
-      <div
+      <motion.div
         className="bg-base-100 rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-5"
+        initial={{ opacity: 0, scale: 0.95, y: 16 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 16 }}
+        transition={{ duration: 0.25, ease: "easeOut" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
         <div className="flex items-center justify-between">
           <h2 className="text-xl font-bold flex items-center gap-2">
             <FiLock size={18} /> Change Password
@@ -48,8 +56,8 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
             <FiX size={16} />
           </button>
         </div>
-
-        <div className="divider my-0" />
+        {/* 
+        <div className="divider my-0" /> */}
 
         <Formik
           initialValues={initialValues}
@@ -58,7 +66,6 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
         >
           {() => (
             <Form className="flex flex-col gap-4">
-              {/* ✅ label passed directly — no wrapper divs needed */}
               <PasswordInput
                 password="currentPassword"
                 placeholder="Current password"
@@ -75,18 +82,23 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
                 label="Confirm New Password"
               />
 
-              <button
+              <motion.button
                 type="submit"
                 className="btn btn-warning w-full"
                 disabled={passwordMutation.isPending}
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.1 }}
               >
+                {passwordMutation.isPending && (
+                  <span className="loading loading-spinner loading-sm" />
+                )}
                 {passwordMutation.isPending ? "Updating..." : "Update Password"}
-              </button>
+              </motion.button>
             </Form>
           )}
         </Formik>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 };
 

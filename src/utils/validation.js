@@ -67,11 +67,11 @@ export const forgotPasswordSchema = Yup.object({
 });
 export const resetPasswordSchema = Yup.object({
   newPassword: Yup.string()
-    .min(8, "Password must be at least 8 characters")
+    .min(8, "Min 8 characters")
     .matches(/[A-Z]/, "Must contain at least one uppercase letter")
     .matches(/[0-9]/, "Must contain at least one number")
-    .required("New password is required"),
+    .required("Password is required"),
   confirmPassword: Yup.string()
-    .oneOf([Yup.ref("newPassword"), null], "Passwords must match") // ✅ fixed ref
-    .required("Confirm password is required"),
+    .oneOf([Yup.ref("newPassword")], "Passwords must match")
+    .required("Please confirm your password"),
 });

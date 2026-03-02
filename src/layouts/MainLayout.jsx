@@ -6,6 +6,8 @@ import { useDispatch } from "react-redux";
 import { useEffect } from "react";
 import { toast } from "react-toastify";
 import { useShowProfile } from "../hooks/profile/useShowProfile";
+import ErrorPage from "../components/common/ErrorPage";
+import { ROUTES } from "../utils/constants";
 
 const MainLayout = () => {
   const dispatch = useDispatch();
@@ -25,7 +27,7 @@ const MainLayout = () => {
     const status = error?.response?.status;
 
     if (status === 401 || status === 403) {
-      navigate("/login");
+      navigate(ROUTES.LOGIN);
     } else if (status >= 500) {
       toast.error("Server error. Please try again later.");
     } else if (!status) {
@@ -44,7 +46,9 @@ const MainLayout = () => {
     );
   }
 
-  if (error) return null;
+  if (error && error?.response?.status !== 401) {
+    return <ErrorPage />;
+  }
 
   return (
     <div className="flex flex-col min-h-screen">

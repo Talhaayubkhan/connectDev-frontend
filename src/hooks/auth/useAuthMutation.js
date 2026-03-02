@@ -11,6 +11,7 @@ import {
 } from "../../services/auth/userAuth";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { ROUTES } from "../../utils/constants";
 
 export const useLoginMutation = () => {
   const dispatch = useDispatch();
@@ -56,7 +57,7 @@ export const useLogoutMutation = () => {
       dispatch(clearUser());
       queryClient.clear();
       toast.success("Logged out successfully");
-      navigate("/login");
+      navigate(ROUTES.LOGIN);
     },
     onError: () => {
       toast.error("Logout failed. Please try again.");
@@ -77,7 +78,7 @@ export const useChangePasswordMutation = () => {
       toast.success(
         "Password changed! Please login again with your new password.",
       );
-      navigate("/login");
+      navigate(ROUTES.LOGIN);
     },
     onError: (error) => {
       const message =
@@ -111,7 +112,7 @@ export const useResetPasswordMutation = () => {
     mutationFn: (data) => resetPassword(data), // ✅ fixed
     onSuccess: () => {
       toast.success("Password reset! Please sign in."); // ✅ your correct answer
-      navigate("/login"); // ✅ your correct answer
+      navigate(ROUTES.LOGIN); // ✅ your correct answer
     },
     onError: (error) => {
       const message =

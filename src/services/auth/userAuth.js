@@ -41,9 +41,11 @@ export const forgotPassword = async ({ email }) => {
   return response.data;
 };
 export const resetPassword = async ({ token, newPassword }) => {
-  const response = await apiClient.post("auth/reset-password", {
+  const response = await apiClient.patch("auth/reset-password", {
     token,
     newPassword,
   });
+  console.log(response);
+
   return response.data;
 };

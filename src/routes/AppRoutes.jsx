@@ -10,32 +10,32 @@ import ErrorPage from "../components/common/ErrorPage";
 import { ToastContainer } from "react-toastify";
 import ConnectionsPage from "../pages/connections/ConnectionsPage";
 import RequestPage from "../pages/connections/RequestPage";
+import Chat from "../pages/connections/Chat";
 
 const AppRoutes = () => {
   return (
     <>
       <Routes>
         {/* Auth routes */}
-        <Route path="/" element={<AuthLayout />}>
+        <Route path="/auth" element={<AuthLayout />}>
           <Route path="login" element={<LoginPage />} />
           <Route path="forgot-password" element={<ForgotPasswordPage />} />
           <Route path="reset-password" element={<ResetPasswordPage />} />
-
-          {/* Auth 404 */}
-          <Route path="*" element={<ErrorPage />} />
         </Route>
 
-        {/* Main app routes */}
+        {/* Main routes */}
         <Route path="/" element={<MainLayout />}>
           <Route index element={<FeedPage />} />
           <Route path="profile" element={<ProfilePage />} />
           <Route path="connections" element={<ConnectionsPage />} />
           <Route path="requests" element={<RequestPage />} />
-
-          {/* Main 404 */}
-          <Route path="*" element={<ErrorPage />} />
+          <Route path="chat/:targetUserId" element={<Chat />} />
         </Route>
+
+        {/* Global 404 */}
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
+
       <ToastContainer
         position="top-center"
         autoClose={1500}
@@ -45,7 +45,7 @@ const AppRoutes = () => {
         pauseOnHover={true}
         draggable={true}
         theme="light"
-      />{" "}
+      />
     </>
   );
 };

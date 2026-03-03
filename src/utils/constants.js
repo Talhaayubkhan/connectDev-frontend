@@ -3,6 +3,7 @@ export const BASE_URL = import.meta.env.VITE_BACKEND_API_URL;
 // ✅ Fallback avatar when photoURL is missing
 export const DEFAULT_AVATAR =
   "https://api.dicebear.com/7.x/thumbs/svg?seed=default";
+
 export const GENDER_OPTIONS = [
   // ✅ descriptive name — it's specifically gender
   { value: "", label: "Select gender" }, // placeholder, empty value

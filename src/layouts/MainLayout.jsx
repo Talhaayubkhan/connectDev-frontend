@@ -12,12 +12,14 @@ import { ROUTES } from "../utils/constants";
 const MainLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-
   const { isLoading, error, data } = useShowProfile();
 
   useEffect(() => {
-    if (data) {
-      dispatch(setUser(data?.data)); // verify this matches your API response shape
+    // WHY null check before dispatch?
+    // If data is undefined on first render, dispatching null/undefined
+    // would wipe out existing Redux user state — causing flicker.
+    if (data?.data) {
+      dispatch(setUser(data.data));
     }
   }, [data, dispatch]);
 
@@ -27,11 +29,13 @@ const MainLayout = () => {
     const status = error?.response?.status;
 
     if (status === 401 || status === 403) {
-      navigate(ROUTES.LOGIN);
+      // WHY not toast here?
+      // 401 = session expired — ProtectedRoute handles redirect.
+      // No need to show error toast for expected auth failures.
+      navigate(ROUTES.LOGIN, { replace: true });
     } else if (status >= 500) {
       toast.error("Server error. Please try again later.");
     } else if (!status) {
-      // ✅ network error — don't kick user to login
       toast.error("Network error. Please check your connection.");
     } else {
       toast.error("Something went wrong.");
@@ -46,7 +50,11 @@ const MainLayout = () => {
     );
   }
 
-  if (error && error?.response?.status !== 401) {
+  // WHY removed the extra error check before return?
+  // ProtectedRoute already blocks unauthenticated users.
+  // 401/403 handled in useEffect above.
+  // Only show ErrorPage for non-auth errors.
+  if (error && error?.response?.status >= 500) {
     return <ErrorPage />;
   }
 

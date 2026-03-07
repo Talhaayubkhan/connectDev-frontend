@@ -79,7 +79,7 @@ const ForgotPasswordPage = () => {
                       : "Send Reset Link"}
                   </motion.button>
                   <Link
-                    to="/login"
+                    to="/auth/login"
                     className="btn btn-ghost btn-sm w-full flex items-center gap-2"
                   >
                     <FiArrowLeft size={14} /> Back to Login

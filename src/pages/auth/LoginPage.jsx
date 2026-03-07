@@ -155,7 +155,7 @@ const LoginPage = () => {
                   {isLogin && (
                     <div className="text-right -mt-2">
                       <Link
-                        to="/forgot-password"
+                        to="/auth/forgot-password"
                         className="text-xs text-primary hover:underline"
                       >
                         Forgot password?

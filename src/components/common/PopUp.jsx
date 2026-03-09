@@ -1,11 +1,13 @@
 import { TbLogout } from "react-icons/tb";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+
+const Motion = motion;
 
 const PopUp = ({ message, onConfirm, onCancel, isLoading }) => {
   return (
     // WHY AnimatePresence on overlay?
     // Backdrop fades in smoothly instead of appearing instantly.
-    <motion.div
+    <Motion.div
       className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -17,7 +19,7 @@ const PopUp = ({ message, onConfirm, onCancel, isLoading }) => {
           Popup feels like it "pops" up naturally.
           scale from 0.95 = subtle grow effect, not dramatic.
           Same easeOut pattern as LoginPage card. */}
-      <motion.div
+      <Motion.div
         className="bg-base-100 rounded-2xl shadow-2xl w-80 overflow-hidden"
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -67,7 +69,7 @@ const PopUp = ({ message, onConfirm, onCancel, isLoading }) => {
             {/* WHY whileTap on confirm button?
                 Same press micro-interaction as LoginPage submit button.
                 Consistent feel across the app. */}
-            <motion.button
+            <Motion.button
               className="btn btn-error flex-1"
               onClick={onConfirm}
               disabled={isLoading}
@@ -79,11 +81,11 @@ const PopUp = ({ message, onConfirm, onCancel, isLoading }) => {
               ) : (
                 "Yes, Logout"
               )}
-            </motion.button>
+            </Motion.button>
           </div>
         </div>
-      </motion.div>
-    </motion.div>
+      </Motion.div>
+    </Motion.div>
   );
 };
 

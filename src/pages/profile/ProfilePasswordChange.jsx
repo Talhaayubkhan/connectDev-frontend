@@ -6,6 +6,8 @@ import PasswordInput from "../../components/common/PasswordInput";
 import { useChangePasswordMutation } from "../../hooks/auth/useAuthMutation";
 import { toast } from "react-toastify";
 
+const Motion = motion;
+
 const ProfilePasswordChange = ({ isOpen, onClose }) => {
   const passwordMutation = useChangePasswordMutation();
 
@@ -32,7 +34,7 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <motion.div
+    <Motion.div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -40,7 +42,7 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
       transition={{ duration: 0.2 }}
       onClick={onClose}
     >
-      <motion.div
+      <Motion.div
         className="bg-base-100 rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-5"
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -82,7 +84,7 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
                 label="Confirm New Password"
               />
 
-              <motion.button
+              <Motion.button
                 type="submit"
                 className="btn btn-warning w-full"
                 disabled={passwordMutation.isPending}
@@ -93,12 +95,12 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
                   <span className="loading loading-spinner loading-sm" />
                 )}
                 {passwordMutation.isPending ? "Updating..." : "Update Password"}
-              </motion.button>
+              </Motion.button>
             </Form>
           )}
         </Formik>
-      </motion.div>
-    </motion.div>
+      </Motion.div>
+    </Motion.div>
   );
 };
 

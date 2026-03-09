@@ -5,6 +5,8 @@ import { forgotPasswordSchema } from "../../utils/validation";
 import { motion } from "framer-motion";
 import { useForgotPasswordMutation } from "../../hooks/auth/useAuthMutation";
 
+const Motion = motion;
+
 const ForgotPasswordPage = () => {
   const forgotPasswordMutation = useForgotPasswordMutation();
 
@@ -19,7 +21,7 @@ const ForgotPasswordPage = () => {
         {/* WHY motion.div on card only?
             Same entrance animation as LoginPage — consistent across auth pages.
             y:32 → 0 + fade in. User feels the same "brand" on every auth page. */}
-        <motion.div
+        <Motion.div
           className="card bg-base-100 shadow-xl"
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
@@ -64,7 +66,7 @@ const ForgotPasswordPage = () => {
                       className="text-error text-xs mt-1"
                     />
                   </div>
-                  <motion.button
+                  <Motion.button
                     type="submit"
                     disabled={forgotPasswordMutation.isPending}
                     className="btn btn-primary w-full mt-1"
@@ -77,7 +79,7 @@ const ForgotPasswordPage = () => {
                     {forgotPasswordMutation.isPending
                       ? "Sending..."
                       : "Send Reset Link"}
-                  </motion.button>
+                  </Motion.button>
                   <Link
                     to="/auth/login"
                     className="btn btn-ghost btn-sm w-full flex items-center gap-2"
@@ -88,7 +90,7 @@ const ForgotPasswordPage = () => {
               )}
             </Formik>
           </div>
-        </motion.div>
+        </Motion.div>
       </div>
     </div>
   );

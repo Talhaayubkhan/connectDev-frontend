@@ -1,7 +1,7 @@
 import { DEFAULT_AVATAR } from "../../utils/constants";
 import { BsGenderAmbiguous } from "react-icons/bs";
 import { FiCalendar } from "react-icons/fi";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 // mode="connection" → View Profile button (navigate to /profile)
 // mode="request"    → Accept / Reject buttons with spinner logic
@@ -12,8 +12,6 @@ const UserCard = ({
   onReject,
   pendingId,
 }) => {
-  const navigate = useNavigate();
-
   const user = mode === "request" ? data?.senderUserId : data;
   const { _id, firstName, lastName, photoURL, age, gender, about, skills } =
     user || {};
@@ -89,11 +87,18 @@ const UserCard = ({
                 Navigates to logged in user's own profile for now.
                 Easy to update later: navigate(`/profile/${data._id}`) */}
             {mode === "connection" && (
-              <Link to={`/chat/${_id}`}>
-                <button className="btn btn-primary btn-sm min-w-[80px]">
-                  Message
-                </button>
-              </Link>
+              <>
+                <Link to={`/chat/${_id}`}>
+                  <button className="btn btn-primary btn-sm min-w-[80px]">
+                    Message
+                  </button>
+                </Link>
+                <Link to={`/profile/${_id}`}>
+                  <button className="btn btn-primary btn-sm min-w-[80px]">
+                    Profile
+                  </button>
+                </Link>
+              </>
             )}
 
             {mode === "request" && (

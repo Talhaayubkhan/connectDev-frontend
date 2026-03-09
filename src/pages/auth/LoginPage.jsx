@@ -9,7 +9,6 @@ import {
 } from "../../hooks/auth/useAuthMutation";
 import { toast } from "react-toastify";
 import { FiUser, FiMail } from "react-icons/fi";
-import { HiCode } from "react-icons/hi";
 
 const LoginPage = () => {
   const [isLogin, setIsLogin] = useState(true);

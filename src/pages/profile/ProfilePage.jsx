@@ -38,7 +38,7 @@ const ProfilePage = () => {
 
   return (
     <div className="min-h-screen bg-base-100 py-6 px-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         <h1 className="text-4xl font-bold text-base-content mb-4">
           My Profile
         </h1>

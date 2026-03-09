@@ -6,6 +6,8 @@ import ErrorPage from "../../components/common/ErrorPage";
 import { useResetPasswordMutation } from "../../hooks/auth/useAuthMutation";
 import { resetPasswordSchema } from "../../utils/validation";
 
+const Motion = motion;
+
 const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
@@ -34,7 +36,7 @@ const ResetPasswordPage = () => {
           subMessage="This reset link is missing a token. Please request a new one."
         />
       ) : (
-        <motion.div
+        <Motion.div
           className="card w-full max-w-sm shadow-2xl bg-base-100 rounded-2xl overflow-hidden"
           initial={{ opacity: 0, y: 32 }}
           animate={{ opacity: 1, y: 0 }}
@@ -76,7 +78,7 @@ const ResetPasswordPage = () => {
                     placeholder="Confirm Password"
                   />
 
-                  <motion.button
+                  <Motion.button
                     type="submit"
                     disabled={resetPasswordMutation.isPending}
                     className="btn btn-primary w-full mt-1"
@@ -89,12 +91,12 @@ const ResetPasswordPage = () => {
                     {resetPasswordMutation.isPending
                       ? "Resetting..."
                       : "Reset Password"}
-                  </motion.button>
+                  </Motion.button>
                 </Form>
               )}
             </Formik>
           </div>
-        </motion.div>
+        </Motion.div>
       )}
     </div>
   );

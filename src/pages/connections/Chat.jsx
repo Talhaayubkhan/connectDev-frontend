@@ -1,8 +1,8 @@
-import React from "react";
 import { useParams } from "react-router-dom";
 
 const Chat = () => {
   const { targetUserId } = useParams();
+  const chatUserLabel = targetUserId ? `User ${targetUserId.slice(0, 6)}` : "Chat User";
 
   const messages = [
     {
@@ -41,7 +41,7 @@ const Chat = () => {
           </div>
           <div>
             <h2 className="font-semibold text-base-content leading-tight">
-              Obi-Wan Kenobi
+              {chatUserLabel}
             </h2>
             <p className="text-xs text-success">Online</p>
           </div>

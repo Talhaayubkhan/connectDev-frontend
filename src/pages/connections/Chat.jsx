@@ -1,8 +1,15 @@
 import { useParams } from "react-router-dom";
-
+import { useSelector } from "react-redux";
+import { useEffect } from "react";
+import { createSocketConnection } from "../../utils/socket";
 const Chat = () => {
   const { targetUserId } = useParams();
-  const chatUserLabel = targetUserId ? `User ${targetUserId.slice(0, 6)}` : "Chat User";
+  const chatUserLabel = targetUserId
+    ? `User ${targetUserId.slice(0, 6)}`
+    : "Chat User";
+  const user = useSelector((store) => store?.auth?.user);
+  const userId = user?._id;
+  // console.log(userId);
 
   const messages = [
     {
@@ -24,6 +31,18 @@ const Chat = () => {
       status: "Seen",
     },
   ];
+
+  useEffect(() => {
+    if (!userId || !targetUserId) return;
+
+    const socket = createSocketConnection();
+
+    socket.emit("joinChat", { userId, targetUserId });
+
+    return () => {
+      socket.off();
+    };
+  }, [userId, targetUserId]);
 
   return (
     <div className="flex justify-center mt-6 px-3">

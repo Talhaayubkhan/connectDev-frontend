@@ -1,8 +1,3 @@
-import { useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
-import { useEffect } from "react";
-import { createSocketConnection } from "../../utils/socket";
-import { useState } from "react";
 // const Chat = () => {
 //   const { targetUserId } = useParams();
 //   const chatUserLabel = targetUserId
@@ -117,6 +112,10 @@ import { useState } from "react";
 //     </div>
 //   );
 // };
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { useEffect, useState, useRef } from "react";
+import { createSocketConnection } from "../../utils/socket";
 
 const Chat = () => {
   const { targetUserId } = useParams();
@@ -128,39 +127,77 @@ const Chat = () => {
     ? `User ${targetUserId.slice(0, 6)}`
     : "Chat User";
 
-  const [messages, setMessages] = useState([{ text: "hello world" }]);
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+
+  const socketRef = useRef(null);
+  const bottomRef = useRef(null);
 
   useEffect(() => {
     if (!userId || !targetUserId) return;
 
-    const socket = createSocketConnection();
+    socketRef.current = createSocketConnection();
 
-    socket.emit("joinChat", {
+    socketRef.current.emit("joinChat", {
       firstName: user.firstName,
       userId,
       targetUserId,
     });
 
+    socketRef.current.on("messageReceived", ({ firstName, text }) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          text,
+          sender: "other",
+          name: firstName,
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        },
+      ]);
+    });
+
     return () => {
-      socket.off();
+      socketRef.current.off("messageReceived");
     };
   }, [userId, targetUserId]);
 
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages]);
+
   const handleSendMessage = () => {
-    const socket = createSocketConnection();
-    socket.emit("sendMessage", {
+    if (!newMessage.trim()) return;
+
+    socketRef.current.emit("sendMessage", {
       firstName: user.firstName,
       userId,
       targetUserId,
       text: newMessage,
     });
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        text: newMessage,
+        sender: "me",
+        name: user.firstName,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      },
+    ]);
+
+    setNewMessage("");
   };
 
   return (
     <div className="flex justify-center mt-6 px-3">
       <div className="w-full max-w-3xl h-[85vh] flex flex-col bg-base-100 shadow-xl rounded-2xl border border-base-300 overflow-hidden">
-        {/* HEADER */}
+        {/* Header */}
         <div className="h-1 w-full bg-gradient-to-r from-primary to-secondary" />
 
         <div className="px-5 py-3 border-b bg-base-200 flex items-center gap-3">
@@ -174,61 +211,59 @@ const Chat = () => {
           </div>
 
           <div>
-            <h2 className="font-semibold text-base-content leading-tight">
-              {chatUserLabel}
-            </h2>
+            <h2 className="font-semibold leading-tight">{chatUserLabel}</h2>
             <p className="text-xs text-success">Online</p>
           </div>
         </div>
 
-        {/* MESSAGES AREA */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+        {/* Messages */}
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
           {messages.length === 0 ? (
             <p className="text-center text-sm opacity-60">No messages yet</p>
           ) : (
             messages.map((msg, index) => (
               <div
                 key={index}
-                className={`chat ${msg.sender === "me" ? "chat-end" : "chat-start"}`}
+                className={`chat ${
+                  msg.sender === "me" ? "chat-end" : "chat-start"
+                }`}
               >
-                <div className="chat-image avatar">
-                  <div className="w-9 rounded-full ring-1 ring-base-300">
-                    <img src={msg.avatar} alt="avatar" />
-                  </div>
-                </div>
-
-                <div className="chat-header text-xs text-base-content/60 mb-0.5">
+                <div className="chat-header text-xs opacity-70">
                   {msg.name}
-                  <time className="opacity-50 ml-2">{msg.time}</time>
+                  <time className="ml-2">{msg.time}</time>
                 </div>
 
                 <div
-                  className={`chat-bubble text-sm ${
+                  className={`chat-bubble ${
                     msg.sender === "me" ? "chat-bubble-primary" : ""
                   }`}
                 >
                   {msg.text}
                 </div>
-
-                <div className="chat-footer opacity-40 text-xs mt-0.5">
-                  {msg.status}
-                </div>
               </div>
             ))
           )}
+
+          <div ref={bottomRef}></div>
         </div>
 
-        {/* INPUT AREA */}
+        {/* Input */}
         <div className="px-4 py-3 border-t bg-base-200">
           <div className="flex gap-2">
             <input
-              type={newMessage}
-              onChange={(e) => e.target.value}
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSendMessage();
+              }}
               placeholder="Type a message..."
               className="input input-bordered w-full input-sm h-10 text-sm"
             />
+
             <button
               onClick={handleSendMessage}
+              disabled={!newMessage.trim()}
               className="btn btn-primary btn-sm h-10"
             >
               Send

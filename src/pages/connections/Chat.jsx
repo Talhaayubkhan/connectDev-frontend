@@ -123,10 +123,6 @@ const Chat = () => {
   const user = useSelector((store) => store?.auth?.user);
   const userId = user?._id;
 
-  const chatUserLabel = targetUserId
-    ? `User ${targetUserId.slice(0, 6)}`
-    : "Chat User";
-
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
@@ -203,15 +199,14 @@ const Chat = () => {
         <div className="px-5 py-3 border-b bg-base-200 flex items-center gap-3">
           <div className="avatar online">
             <div className="w-9 rounded-full ring-2 ring-primary/30">
-              <img
-                src="https://img.daisyui.com/images/profile/demo/kenobee@192.webp"
-                alt="chat user"
-              />
+              <img src={user?.photoURL} alt="chat user" />
             </div>
           </div>
 
           <div>
-            <h2 className="font-semibold leading-tight">{chatUserLabel}</h2>
+            <h2 className="font-semibold leading-tight">
+              {user?.firstName + " " + user?.lastName}
+            </h2>
             <p className="text-xs text-success">Online</p>
           </div>
         </div>

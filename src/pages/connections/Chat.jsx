@@ -116,6 +116,7 @@ import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useEffect, useState, useRef } from "react";
 import { createSocketConnection } from "../../utils/socket";
+// import { useConnections } from "../../hooks/connections/useConnections";
 
 const Chat = () => {
   const { targetUserId } = useParams();

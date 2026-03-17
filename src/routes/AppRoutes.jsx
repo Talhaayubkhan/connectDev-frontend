@@ -13,6 +13,7 @@ import { ToastContainer } from "react-toastify";
 import ConnectionsPage from "../pages/connections/ConnectionsPage";
 import RequestPage from "../pages/connections/RequestPage";
 import Chat from "../pages/connections/Chat";
+import UniqueProfile from "../pages/profile/UniqueProfile";
 
 const AppRoutes = () => {
   return (
@@ -39,6 +40,7 @@ const AppRoutes = () => {
             <Route path="connections" element={<ConnectionsPage />} />
             <Route path="requests" element={<RequestPage />} />
             <Route path="chat/:targetUserId" element={<Chat />} />
+            <Route path="profile/:targetUserId" element={<UniqueProfile />} />
           </Route>
         </Route>
 

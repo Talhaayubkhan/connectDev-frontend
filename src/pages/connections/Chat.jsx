@@ -116,28 +116,42 @@ import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useEffect, useState, useRef } from "react";
 import { createSocketConnection } from "../../utils/socket";
-// import { useConnections } from "../../hooks/connections/useConnections";
+import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";
+import ErrorPage from "../../components/common/ErrorPage";
+import { DEFAULT_AVATAR } from "../../utils/constants";
 
 const Chat = () => {
-  const { targetUserId } = useParams();
+  // PARAM
+  const { userId: targetUserId } = useParams();
 
+  // CURRENT USER
   const user = useSelector((store) => store?.auth?.user);
-  const userId = user?._id;
+  const currentUserId = user?._id;
 
+  // FETCH TARGET USER PROFILE
+  const { data, isLoading, error } = useUniqueProfile(targetUserId);
+
+  // SAFE ACCESS
+  const firstName = data?.firstName;
+  const lastName = data?.lastName;
+  const photoURL = data?.photoURL;
+
+  // CHAT STATE
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
   const socketRef = useRef(null);
   const bottomRef = useRef(null);
 
+  // SOCKET CONNECTION
   useEffect(() => {
-    if (!userId || !targetUserId) return;
+    if (!currentUserId || !targetUserId) return;
 
     socketRef.current = createSocketConnection();
 
     socketRef.current.emit("joinChat", {
       firstName: user.firstName,
-      userId,
+      userId: currentUserId,
       targetUserId,
     });
 
@@ -157,20 +171,22 @@ const Chat = () => {
     });
 
     return () => {
-      socketRef.current.off("messageReceived");
+      socketRef.current.disconnect(); // IMPORTANT
     };
-  }, [userId, targetUserId]);
+  }, [currentUserId, targetUserId]);
 
+  // AUTO SCROLL
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // SEND MESSAGE
   const handleSendMessage = () => {
     if (!newMessage.trim()) return;
 
     socketRef.current.emit("sendMessage", {
       firstName: user.firstName,
-      userId,
+      userId: currentUserId,
       targetUserId,
       text: newMessage,
     });
@@ -191,6 +207,20 @@ const Chat = () => {
     setNewMessage("");
   };
 
+  // LOADING UI
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-[60vh]">
+        <span className="loading loading-spinner loading-lg text-primary"></span>
+      </div>
+    );
+  }
+
+  // ERROR UI
+  if (error) {
+    return <ErrorPage />;
+  }
+
   return (
     <div className="flex justify-center mt-6 px-3">
       <div className="w-full max-w-3xl h-[85vh] flex flex-col bg-base-100 shadow-xl rounded-2xl border border-base-300 overflow-hidden">
@@ -200,13 +230,19 @@ const Chat = () => {
         <div className="px-5 py-3 border-b bg-base-200 flex items-center gap-3">
           <div className="avatar online">
             <div className="w-9 rounded-full ring-2 ring-primary/30">
-              <img src={user?.photoURL} alt="chat user" />
+              <img
+                src={photoURL || DEFAULT_AVATAR}
+                alt="chat user"
+                onError={(e) => {
+                  e.currentTarget.src = DEFAULT_AVATAR;
+                }}
+              />
             </div>
           </div>
 
           <div>
             <h2 className="font-semibold leading-tight">
-              {user?.firstName + " " + user?.lastName}
+              {firstName ? `${firstName} ${lastName}` : "Loading..."}
             </h2>
             <p className="text-xs text-success">Online</p>
           </div>

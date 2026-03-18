@@ -4,6 +4,7 @@ import ErrorPage from "../../components/common/ErrorPage";
 import { DEFAULT_AVATAR } from "../../utils/constants";
 import { FiCalendar } from "react-icons/fi";
 import { BsGenderAmbiguous } from "react-icons/bs";
+import { IoMdArrowBack } from "react-icons/io";
 
 const UniqueProfile = () => {
   const { userId } = useParams();
@@ -94,6 +95,7 @@ const UniqueProfile = () => {
             className="btn btn-ghost"
             onClick={() => navigate("/connections")}
           >
+            <IoMdArrowBack />
             Back
           </button>
 

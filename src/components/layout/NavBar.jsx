@@ -5,7 +5,9 @@ import { DEFAULT_AVATAR, formatLastSeen } from "../../utils/constants";
 import { useSelector } from "react-redux";
 import { useLogoutMutation } from "../../hooks/auth/useAuthMutation";
 import { AnimatePresence } from "framer-motion";
-import { FiUser, FiSettings, FiMenu, FiX } from "react-icons/fi";
+import { FiUser, FiMenu, FiX } from "react-icons/fi";
+import { FaDeleteLeft } from "react-icons/fa6";
+
 import { TbLogout } from "react-icons/tb";
 import { HiCode } from "react-icons/hi";
 
@@ -133,15 +135,7 @@ const NavBar = () => {
                   <FiUser size={14} /> Profile
                 </Link>
               </li>
-              <li>
-                <Link
-                  to="/settings"
-                  className={`flex items-center gap-2 rounded-lg ${isActive("/settings") ? "active" : ""}`}
-                >
-                  <FiSettings size={14} /> Settings
-                </Link>
-              </li>
-              <div className="divider my-0" />
+
               <li>
                 <button
                   onClick={() => setShowLogoutPopup(true)}
@@ -260,18 +254,6 @@ const NavBar = () => {
                 }`}
               >
                 <FiUser size={15} /> Profile
-              </Link>
-
-              <Link
-                to="/settings"
-                onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
-                  isActive("/settings")
-                    ? "bg-primary/10 text-primary"
-                    : "hover:bg-base-200 text-base-content/80"
-                }`}
-              >
-                <FiSettings size={15} /> Settings
               </Link>
             </div>
 

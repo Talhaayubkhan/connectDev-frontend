@@ -126,7 +126,6 @@ import {
 } from "react-icons/fi";
 import { BsGenderAmbiguous } from "react-icons/bs";
 
-// ─── Component ────────────────────────────────────────────────────────────────
 const UniqueProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
@@ -134,8 +133,15 @@ const UniqueProfile = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-primary"></span>
+      <div className="max-w-2xl mx-auto px-4 py-10 space-y-4">
+        <div className="skeleton h-32 w-full rounded-xl" />
+        <div className="flex gap-4 items-center">
+          <div className="skeleton w-20 h-20 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <div className="skeleton h-4 w-1/3" />
+            <div className="skeleton h-3 w-1/4" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -145,44 +151,28 @@ const UniqueProfile = () => {
 
     if (status === 403) {
       return (
-        <div className="max-w-2xl mx-auto px-4 py-10">
-          <div className="card bg-base-100 shadow-lg overflow-hidden">
-            <div className="h-1 w-full bg-gradient-to-r from-primary to-secondary" />
-            <div className="p-10 flex flex-col items-center text-center gap-3">
-              <div className="bg-warning/10 p-4 rounded-full">
-                <FiLock size={28} className="text-warning" />
-              </div>
-              <h2 className="text-lg font-bold">Profile Restricted</h2>
-              <p className="text-sm text-base-content/55 max-w-xs">
-                You can only view profiles of people you're connected with.
-              </p>
-              <button
-                className="btn btn-ghost btn-sm gap-1 mt-2"
-                onClick={() => navigate(-1)}
-              >
-                <FiArrowLeft size={14} /> Go Back
-              </button>
-            </div>
-          </div>
+        <div className="text-center py-16">
+          <FiLock className="mx-auto text-warning text-3xl mb-3" />
+          <p className="text-sm text-base-content/60">
+            This profile is private
+          </p>
+          <button className="btn btn-ghost mt-4" onClick={() => navigate(-1)}>
+            Go Back
+          </button>
         </div>
       );
     }
 
     if (status === 404) {
       return (
-        <p className="text-center mt-10 text-base-content/50">
-          This user doesn't exist.
-        </p>
+        <p className="text-center mt-10 text-base-content/50">User not found</p>
       );
     }
 
     return <ErrorPage />;
   }
 
-  if (!data)
-    return (
-      <p className="text-center mt-10 text-base-content/50">No user found.</p>
-    );
+  if (!data) return null;
 
   const { _id, firstName, lastName, photoURL, age, gender, skills, about } =
     data;
@@ -190,69 +180,61 @@ const UniqueProfile = () => {
   return (
     <div className="max-w-2xl mx-auto px-4 py-10">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.35, ease: "easeOut" }}
-        className="card bg-base-100 shadow-lg overflow-hidden"
+        className="bg-base-100 rounded-2xl shadow-lg overflow-hidden"
       >
-        <div className="h-1 w-full bg-gradient-to-r from-primary to-secondary" />
+        {/* Cover */}
+        <div className="h-28 bg-gradient-to-r from-primary to-secondary" />
 
-        <div className="p-6 flex flex-col gap-5">
-          {/* Avatar + name */}
-          <div className="flex items-center gap-4">
-            <div className="avatar">
-              <div className="w-20 h-20 rounded-full ring-2 ring-primary ring-offset-base-100 ring-offset-2">
+        {/* Profile Section */}
+        <div className="p-6 relative">
+          <div className="flex gap-4 items-start">
+            {/* Avatar */}
+            <div className="absolute -top-12 left-6">
+              <div className="w-24 h-24 rounded-full ring-4 ring-base-100 overflow-hidden">
                 <img
                   src={photoURL || DEFAULT_AVATAR}
-                  alt={`${firstName} ${lastName}`}
-                  onError={(e) => {
-                    e.currentTarget.src = DEFAULT_AVATAR;
-                  }}
+                  alt="avatar"
+                  onError={(e) => (e.currentTarget.src = DEFAULT_AVATAR)}
                 />
               </div>
             </div>
-            <div className="flex-1">
+
+            <div className="ml-28 flex-1">
               <h2 className="text-xl font-bold">
                 {firstName} {lastName}
               </h2>
-              <div className="flex flex-wrap items-center gap-3 mt-1 text-sm text-base-content/55">
-                {age && (
-                  <span className="flex items-center gap-1">
-                    <FiCalendar size={13} /> {age} yrs
-                  </span>
-                )}
-                {gender && (
-                  <span className="flex items-center gap-1 capitalize">
-                    <BsGenderAmbiguous size={13} /> {gender}
-                  </span>
-                )}
+
+              <div className="flex gap-3 text-sm text-base-content/60 mt-1">
+                {age && <span>{age} yrs</span>}
+                {gender && <span className="capitalize">{gender}</span>}
               </div>
             </div>
           </div>
 
-          <div className="divider my-0" />
-
           {/* About */}
           {about && (
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-1.5">
+            <div className="mt-6">
+              <p className="text-xs uppercase text-base-content/40 mb-1">
                 About
               </p>
-              <p className="text-base-content/70 leading-relaxed text-sm whitespace-pre-line">
-                {about}
-              </p>
+              <p className="text-sm text-base-content/70">{about}</p>
             </div>
           )}
 
           {/* Skills */}
           {skills?.length > 0 && (
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-base-content/40 mb-2">
+            <div className="mt-5">
+              <p className="text-xs uppercase text-base-content/40 mb-2">
                 Skills
               </p>
               <div className="flex flex-wrap gap-2">
                 {skills.map((skill) => (
-                  <span key={skill} className="badge badge-outline badge-md">
+                  <span
+                    key={skill}
+                    className="px-3 py-1 text-xs rounded-full bg-primary/10 text-primary"
+                  >
                     {skill}
                   </span>
                 ))}
@@ -260,18 +242,14 @@ const UniqueProfile = () => {
             </div>
           )}
 
-          <div className="divider my-0" />
-
           {/* Actions */}
-          <div className="flex items-center justify-between">
-            <button
-              className="btn btn-ghost btn-sm gap-1"
-              onClick={() => navigate(-1)}
-            >
-              <FiArrowLeft size={15} /> Back
+          <div className="flex justify-between mt-6">
+            <button className="btn btn-ghost" onClick={() => navigate(-1)}>
+              Back
             </button>
-            <Link to={`/chat/${_id}`} className="btn btn-primary btn-sm gap-2">
-              <FiMessageCircle size={15} /> Message
+
+            <Link to={`/chat/${_id}`} className="btn btn-primary">
+              Message
             </Link>
           </div>
         </div>
@@ -279,5 +257,4 @@ const UniqueProfile = () => {
     </div>
   );
 };
-
 export default UniqueProfile;

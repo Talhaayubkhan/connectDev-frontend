@@ -14,7 +14,6 @@ import ConnectionsPage from "../pages/connections/ConnectionsPage";
 import RequestPage from "../pages/connections/RequestPage";
 import Chat from "../pages/connections/Chat";
 import UniqueProfile from "../pages/profile/UniqueProfile";
-import Delete from "../pages/DeleteAccount";
 
 const AppRoutes = () => {
   return (
@@ -42,7 +41,6 @@ const AppRoutes = () => {
             <Route path="requests" element={<RequestPage />} />
             <Route path="chat/:userId" element={<Chat />} />
             <Route path="profile/:userId" element={<UniqueProfile />} />
-            <Route path="delete" element={<Delete />} />
           </Route>
         </Route>
 

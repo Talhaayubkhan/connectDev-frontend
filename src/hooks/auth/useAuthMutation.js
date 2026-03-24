@@ -71,15 +71,19 @@ export const useChangePasswordMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data) => changePassword(data),
+    mutationFn: changePassword,
+
     onSuccess: () => {
+      toast.success("Password changed. Please login again.");
+
+      // Security cleanup
       dispatch(clearUser());
       queryClient.clear();
-      toast.success(
-        "Password changed! Please login again with your new password.",
-      );
+
+      // Redirect
       navigate(ROUTES.LOGIN);
     },
+
     onError: (error) => {
       const message =
         error?.response?.data?.message || "Password change failed.";
@@ -111,8 +115,8 @@ export const useResetPasswordMutation = () => {
   return useMutation({
     mutationFn: (data) => resetPassword(data), // ✅ fixed
     onSuccess: () => {
-      toast.success("Password reset! Please sign in."); // ✅ your correct answer
-      navigate(ROUTES.LOGIN); // ✅ your correct answer
+      toast.success("Password reset! Please sign in.");
+      navigate(ROUTES.LOGIN);
     },
     onError: (error) => {
       const message =

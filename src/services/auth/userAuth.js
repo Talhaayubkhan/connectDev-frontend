@@ -29,23 +29,31 @@ export const logoutUser = async () => {
 };
 
 export const changePassword = async ({ currentPassword, newPassword }) => {
-  const response = await apiClient.patch("profile/changePassword", {
+  const response = await apiClient.patch("/profile/changePassword", {
     currentPassword,
     newPassword,
   });
+
   return response.data;
 };
 
 export const forgotPassword = async ({ email }) => {
   const response = await apiClient.post("auth/forgot-password", { email });
+  console.log(response?.data);
   return response.data;
 };
-export const resetPassword = async ({ token, newPassword }) => {
+
+export const resetPassword = async ({
+  token,
+  newPassword,
+  confirmPassword,
+}) => {
   const response = await apiClient.patch("auth/reset-password", {
     token,
     newPassword,
+    confirmPassword,
   });
-  console.log(response);
+  console.log(response?.data?.data);
 
-  return response.data;
+  return response?.data?.data;
 };

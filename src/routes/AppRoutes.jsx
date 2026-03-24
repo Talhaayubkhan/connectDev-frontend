@@ -19,9 +19,6 @@ const AppRoutes = () => {
   return (
     <>
       <Routes>
-        {/* WHY GuestRoute wraps auth routes?
-            Logged in user visiting /auth/login → redirected to /
-            Without this: logged in users see login page = confusing */}
         <Route element={<GuestRoute />}>
           <Route path="/auth" element={<AuthLayout />}>
             <Route path="login" element={<LoginPage />} />

@@ -262,11 +262,11 @@ const LoginPage = () => {
         <div className="absolute w-72 h-72 bg-white/10 rounded-full blur-3xl bottom-10 right-10" />
 
         <div className="relative z-10 max-w-md space-y-6">
-          <div className="w-14 h-14 flex items-center justify-center rounded-xl bg-white/20">
-            <FiUser className="w-6 h-6" />
+          <div className="w-20 h-20 flex items-center justify-center rounded-2xl bg-white/20">
+            <FiUser className="w-10 h-10" />
           </div>
 
-          <h1 className="text-3xl xl:text-4xl font-bold leading-tight">
+          <h1 className="text-4xl xl:text-4xl font-bold leading-tight">
             Connect. Build. Grow.
           </h1>
 
@@ -275,11 +275,11 @@ const LoginPage = () => {
             connections.
           </p>
 
-          <div className="space-y-2 text-sm opacity-90">
-            <div>• Find like-minded developers</div>
-            <div>• Chat and collaborate instantly</div>
-            <div>• Build real-world connections</div>
-          </div>
+          <ul className="space-y-2 text-md opacity-90">
+            <li>• Find like-minded developers</li>
+            <li>• Chat and collaborate instantly</li>
+            <li>• Build real-world connections</li>
+          </ul>
         </div>
       </div>
 

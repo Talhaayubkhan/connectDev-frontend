@@ -16,7 +16,6 @@ import ProfilePasswordChange from "./ProfilePasswordChange";
 import { useProfileUpdateMutation } from "../../hooks/profile/useUpdateMutation";
 import { DEFAULT_AVATAR, GENDER_OPTIONS } from "../../utils/constants";
 import { validateEditProfileSchema } from "../../utils/validation";
-import { Link } from "react-router-dom";
 import { AnimatePresence } from "framer-motion";
 
 const ProfilePage = () => {

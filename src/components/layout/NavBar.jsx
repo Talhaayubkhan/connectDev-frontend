@@ -38,7 +38,7 @@ const NavBar = () => {
             <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
               <HiCode size={16} className="text-primary-content" />
             </div>
-            Connect<span className="text-primary">DEV</span>
+            Connect<span className="text-primary">_DEV</span>
           </Link>
         </div>
 

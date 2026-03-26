@@ -39,4 +39,10 @@ export const ROUTES = {
   CHAT: "/chat",
 };
 
+export const navLinks = [
+  { to: "/", label: "Feed" },
+  { to: "/connections", label: "Connections" },
+  { to: "/requests", label: "Requests" },
+];
+
 // export const API_URL = { BASE_URL };

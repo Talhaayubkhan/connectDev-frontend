@@ -1,13 +1,15 @@
 import { Link, useLocation } from "react-router-dom";
 import PopUp from "../common/PopUp";
 import { useState } from "react";
-import { DEFAULT_AVATAR, formatLastSeen } from "../../utils/constants";
+import {
+  DEFAULT_AVATAR,
+  formatLastSeen,
+  navLinks,
+} from "../../utils/constants";
 import { useSelector } from "react-redux";
 import { useLogoutMutation } from "../../hooks/auth/useAuthMutation";
 import { AnimatePresence } from "framer-motion";
 import { FiUser, FiMenu, FiX } from "react-icons/fi";
-import { FaDeleteLeft } from "react-icons/fa6";
-
 import { TbLogout } from "react-icons/tb";
 import { HiCode } from "react-icons/hi";
 
@@ -17,12 +19,6 @@ const NavBar = () => {
   const user = useSelector((state) => state?.auth?.user);
   const location = useLocation();
   const logoutMutation = useLogoutMutation();
-
-  const navLinks = [
-    { to: "/", label: "Feed" },
-    { to: "/connections", label: "Connections" },
-    { to: "/requests", label: "Requests" },
-  ];
 
   const isActive = (path) => location.pathname === path;
 

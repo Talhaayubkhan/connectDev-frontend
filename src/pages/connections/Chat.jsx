@@ -36,20 +36,25 @@ const Chat = () => {
       status: "Seen",
     },
   ];
-
   useEffect(() => {
     if (!userId || !targetUserId) return;
 
     const socket = createSocketConnection();
 
-    socket.emit("joinChat", {
-      firstName: user.firstName,
-      userId,
-      targetUserId,
+    socket.on("connect", () => {
+      console.log("Connected:", socket.id);
+
+      socket.emit("joinChat", { userId, targetUserId });
+      console.log("joinChat emitted");
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Disconnected");
     });
 
     return () => {
-      socket.off();
+      console.log("Cleaning up socket...");
+      socket.disconnect();
     };
   }, [userId, targetUserId]);
 

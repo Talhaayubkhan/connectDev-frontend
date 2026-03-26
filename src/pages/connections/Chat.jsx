@@ -113,13 +113,14 @@
 //   );
 // };
 
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useEffect, useState, useRef } from "react";
 import { createSocketConnection } from "../../utils/socket";
 import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";
 import ErrorPage from "../../components/common/ErrorPage";
 import { DEFAULT_AVATAR } from "../../utils/constants";
+import { IoIosArrowBack } from "react-icons/io";
 
 const Chat = () => {
   // PARAM
@@ -128,6 +129,7 @@ const Chat = () => {
   // CURRENT USER
   const user = useSelector((store) => store?.auth?.user);
   const currentUserId = user?._id;
+  const navigate = useNavigate();
 
   // FETCH TARGET USER PROFILE
   const { data, isLoading, error } = useUniqueProfile(targetUserId);
@@ -229,7 +231,13 @@ const Chat = () => {
         <div className="h-1 w-full bg-gradient-to-r from-primary to-secondary" />
 
         <div className="px-5 py-3 border-b bg-base-200 flex items-center gap-3">
-          <div className="avatar online">
+          <div className="avatar online flex justify-center items-center gap-3">
+            <button
+              className="w-8 h-8 text-3xl cursor-pointer hover:text-primary"
+              onClick={() => navigate(-1)}
+            >
+              <IoIosArrowBack />
+            </button>
             <div className="w-9 rounded-full ring-2 ring-primary/30">
               <img
                 src={photoURL || DEFAULT_AVATAR}

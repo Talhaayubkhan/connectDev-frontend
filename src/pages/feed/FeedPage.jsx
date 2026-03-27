@@ -4,6 +4,8 @@ import {
 } from "../../hooks/feed/useFeedData";
 import ProfileCard from "../../components/common/ProfileCard";
 import { HiUserGroup } from "react-icons/hi";
+import { RiRobot2Fill } from "react-icons/ri";
+
 import ErrorPage from "../../components/common/ErrorPage";
 import { useState } from "react";
 
@@ -56,18 +58,24 @@ const FeedPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-      <p className="text-sm text-base-content/50">
-        {users.length} {users.length === 1 ? "profile" : "profiles"} remaining
-      </p>
-      <ProfileCard
-        profile={currentProfile}
-        showActions={true}
-        pendingAction={pendingAction}
-        onAccept={(id, name) => handleAction(id, name, "interested")}
-        onReject={(id, name) => handleAction(id, name, "ignored")}
-      />
-    </div>
+    <>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <p className="text-sm text-base-content/50">
+          {users.length} {users.length === 1 ? "profile" : "profiles"} remaining
+        </p>
+        <ProfileCard
+          profile={currentProfile}
+          showActions={true}
+          pendingAction={pendingAction}
+          onAccept={(id, name) => handleAction(id, name, "interested")}
+          onReject={(id, name) => handleAction(id, name, "ignored")}
+        />
+      </div>
+
+      <div className="flex justify-end items-end text-3xl px-10 cursor-pointer">
+        <RiRobot2Fill />
+      </div>
+    </>
   );
 };
 

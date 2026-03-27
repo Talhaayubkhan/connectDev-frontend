@@ -2,19 +2,16 @@ import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { useEffect } from "react";
 import { createSocketConnection } from "../../utils/socket";
-// import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";
-// import ErrorPage from "../../components/common/ErrorPage";
-// import { DEFAULT_AVATAR } from "../../utils/constants";
-// import { IoIosArrowBack } from "react-icons/io";
 
 const Chat = () => {
-  const { targetUserId } = useParams();
-  const chatUserLabel = targetUserId
-    ? `User ${targetUserId.slice(0, 6)}`
+  const { userId: chatPartnerId } = useParams();
+
+  const chatUserLabel = chatPartnerId
+    ? `User ${chatPartnerId.slice(0, 6)}`
     : "Chat User";
-  const user = useSelector((store) => store?.auth?.user);
-  const userId = user?._id;
-  // console.log(userId);
+
+  const currentUser = useSelector((store) => store?.auth?.user);
+  const currentUserId = currentUser?._id;
 
   const messages = [
     {
@@ -36,76 +33,88 @@ const Chat = () => {
       status: "Seen",
     },
   ];
+
   useEffect(() => {
-    if (!userId || !targetUserId) return;
+    if (!currentUserId || !chatPartnerId) return;
 
     const socket = createSocketConnection();
-
-    socket.on("connect", () => {
-      console.log("Connected:", socket.id);
-
-      socket.emit("joinChat", { userId, targetUserId });
-      console.log("joinChat emitted");
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Disconnected");
+    socket.emit("joinChat", {
+      IdUser: currentUserId,
+      userId: chatPartnerId,
     });
 
     return () => {
-      console.log("Cleaning up socket...");
       socket.disconnect();
     };
-  }, [userId, targetUserId]);
+  }, [currentUserId, chatPartnerId]);
 
   return (
     <div className="flex justify-center mt-6 px-3">
-      <div className="w-full max-w-3xl h-[85vh] flex flex-col bg-base-100 shadow-xl rounded-2xl border border-base-300 overflow-hidden">
+      <div className="w-full max-w-3xl h-[85vh] flex flex-col bg-base-100 shadow-2xl rounded-2xl border border-base-300 overflow-hidden">
         {/* HEADER */}
         <div className="h-1 w-full bg-gradient-to-r from-primary to-secondary" />
+
         <div className="px-5 py-3 border-b bg-base-200 flex items-center gap-3">
           <div className="avatar online">
-            <div className="w-9 rounded-full ring-2 ring-primary/30">
+            <div className="w-10 rounded-full ring-2 ring-primary/30">
               <img
                 src="https://img.daisyui.com/images/profile/demo/kenobee@192.webp"
                 alt="chat user"
               />
             </div>
           </div>
-          <div>
-            <h2 className="font-semibold text-base-content leading-tight">
-              {chatUserLabel}
-            </h2>
+
+          <div className="flex flex-col">
+            <h2 className="font-semibold text-base">{chatUserLabel}</h2>
             <p className="text-xs text-success">Online</p>
           </div>
         </div>
 
         {/* MESSAGES AREA */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+        <div className="flex-1 overflow-y-auto px-4 py-5 space-y-4 bg-base-100 scroll-smooth">
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`chat ${msg.sender === "me" ? "chat-end" : "chat-start"}`}
+              className={`flex ${
+                msg.sender === "me" ? "justify-end" : "justify-start"
+              }`}
             >
-              <div className="chat-image avatar">
-                <div className="w-9 rounded-full ring-1 ring-base-300">
-                  <img src={msg.avatar} alt="avatar" />
+              <div className="flex items-end gap-2 max-w-[75%]">
+                {/* Avatar (only for other user) */}
+                {msg.sender !== "me" && (
+                  <div className="avatar">
+                    <div className="w-8 rounded-full">
+                      <img src={msg.avatar} alt="avatar" />
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  {/* Name + time */}
+                  <div className="text-[11px] text-base-content/60 mb-1 px-1">
+                    {msg.sender !== "me" && msg.name}
+                    <span className="ml-2 opacity-50">{msg.time}</span>
+                  </div>
+
+                  {/* Message bubble */}
+                  <div
+                    className={`px-4 py-2 rounded-2xl text-sm leading-relaxed shadow-sm
+                ${
+                  msg.sender === "me"
+                    ? "bg-primary text-primary-content rounded-br-md"
+                    : "bg-base-200 rounded-bl-md"
+                }`}
+                  >
+                    {msg.text}
+                  </div>
+
+                  {/* Status */}
+                  {msg.sender === "me" && (
+                    <div className="text-[10px] text-right mt-1 opacity-50 pr-1">
+                      {msg.status}
+                    </div>
+                  )}
                 </div>
-              </div>
-
-              <div className="chat-header text-xs text-base-content/60 mb-0.5">
-                {msg.name}
-                <time className="opacity-50 ml-2">{msg.time}</time>
-              </div>
-
-              <div
-                className={`chat-bubble text-sm ${msg.sender === "me" ? "chat-bubble-primary" : ""}`}
-              >
-                {msg.text}
-              </div>
-
-              <div className="chat-footer opacity-40 text-xs mt-0.5">
-                {msg.status}
               </div>
             </div>
           ))}
@@ -113,13 +122,15 @@ const Chat = () => {
 
         {/* INPUT AREA */}
         <div className="px-4 py-3 border-t bg-base-200">
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <input
               type="text"
               placeholder="Type a message..."
-              className="input input-bordered w-full input-sm h-10 text-sm"
+              className="input input-bordered w-full h-10 text-sm rounded-full px-4 focus:outline-none"
             />
-            <button className="btn btn-primary btn-sm h-10">Send</button>
+            <button className="btn btn-primary btn-sm rounded-full px-5 h-10">
+              Send
+            </button>
           </div>
         </div>
       </div>

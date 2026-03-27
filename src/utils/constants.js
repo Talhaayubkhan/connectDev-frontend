@@ -1,4 +1,5 @@
-export const BASE_URL = import.meta.env.VITE_BACKEND_API_URL;
+// export const BASE_URL = import.meta.env.VITE_BACKEND_API_URL;
+export const BASE_URL = "http://localhost:3000";
 
 // ✅ Fallback avatar when photoURL is missing
 export const DEFAULT_AVATAR =

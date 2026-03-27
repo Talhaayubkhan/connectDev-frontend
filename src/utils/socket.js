@@ -9,10 +9,3 @@ export const createSocketConnection = () => {
   }
   return socket;
 };
-
-export const disconnectSocket = () => {
-  if (socket) {
-    socket.disconnect();
-    socket = null;
-  }
-};

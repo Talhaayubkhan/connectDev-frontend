@@ -47,6 +47,7 @@ export const navLinks = [
 ];
 
 export const EVENTS = {
+  JOIN_CHAT: "joinChat",
   SEND_MESSAGE: "sendMessage",
   MESSAGE_RECEIVED: "messageReceived",
 };

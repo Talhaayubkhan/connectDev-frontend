@@ -46,4 +46,9 @@ export const navLinks = [
   { to: "/requests", label: "Requests" },
 ];
 
+export const EVENTS = {
+  SEND_MESSAGE: "sendMessage",
+  MESSAGE_RECEIVED: "messageReceived",
+};
+
 // export const API_URL = { BASE_URL };

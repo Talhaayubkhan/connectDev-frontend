@@ -15,7 +15,7 @@ import ProfileCard from "../../components/common/ProfileCard";
 import ProfilePasswordChange from "./ProfilePasswordChange";
 import { useProfileUpdateMutation } from "../../hooks/profile/useUpdateMutation";
 import { DEFAULT_AVATAR, GENDER_OPTIONS } from "../../utils/constants";
-import { validateEditProfileSchema } from "../../utils/validation";
+import { editProfileSchema } from "../../utils/validation";
 import { AnimatePresence } from "framer-motion";
 
 const ProfilePage = () => {
@@ -45,7 +45,7 @@ const ProfilePage = () => {
         <Formik
           initialValues={initialValues}
           enableReinitialize
-          validationSchema={validateEditProfileSchema}
+          validationSchema={editProfileSchema}
           onSubmit={(values) => updateMutation.mutate(values)}
         >
           {({ values, setFieldValue }) => (

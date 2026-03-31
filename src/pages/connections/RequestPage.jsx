@@ -10,8 +10,12 @@ import { useState } from "react";
 const RequestsPage = () => {
   const { data: requests, isLoading, error } = useConnectionRequests();
   const reviewRequestMutation = useReviewConnectionRequest();
-  const [pendingId, setPendingId] = useState(null);
 
+  // More explicit structure (clearer than raw object)
+  const [pendingAction, setPendingAction] = useState(null);
+  // { id: string, type: "accepted" | "rejected" }
+
+  // Loading State
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -20,63 +24,67 @@ const RequestsPage = () => {
     );
   }
 
+  // Error State
   if (error) {
     return (
       <ErrorPage
         code="500"
-        message="Failed to load connections"
-        subMessage="Something went wrong. Please try again."
+        message="Failed to load requests"
+        subMessage="Please refresh or try again later."
       />
     );
   }
 
+  // Empty State
   if (!requests?.length) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-base-content/50">
-        <HiUserGroup size={64} />
-        <p className="text-xl font-semibold">No Requests Yet</p>
-        <p className="text-sm">Start connecting with people on the feed!</p>
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-3 text-base-content/60 text-center px-4">
+        <HiUserGroup size={64} className="opacity-70" />
+        <h2 className="text-xl font-semibold">No Requests Yet</h2>
+        <p className="text-sm max-w-xs">
+          When people send you connection requests, they will appear here.
+        </p>
       </div>
     );
   }
 
+  // Handlers
   const handleReview = (requestId, status) => {
-    // WHY guard with pendingId?
-    // Prevents clicking another card while one is already loading.
-    // One action at a time — clean and safe.
-    if (pendingId) return;
+    // Prevent multiple simultaneous actions
+    if (pendingAction) return;
 
-    setPendingId({ id: requestId, status });
+    setPendingAction({ id: requestId, type: status });
 
     reviewRequestMutation.mutate(
       { status, requestId },
       {
-        // WHY onSettled not onSuccess?
-        // onSettled fires on both success AND error.
-        // pendingId always clears — button never gets stuck loading.
-        onSettled: () => setPendingId(null),
+        onSettled: () => setPendingAction(null),
       },
     );
   };
 
+  // Main UI
   return (
     <div className="max-w-3xl mx-auto py-10 px-4">
-      <h1 className="text-3xl font-bold text-base-content mb-8">
-        Requests
-        <span className="ml-2 badge badge-primary badge-lg">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-base-content">
+          Requests
+        </h1>
+
+        <span className="badge badge-primary sm:badge-lg">
           {requests.length}
         </span>
-      </h1>
+      </div>
+
+      {/* List */}
       <div className="flex flex-col gap-4">
         {requests.map((request) => (
           <UserCard
             key={request._id}
             data={request}
             mode="request"
-            // WHY pass pendingId down?
-            // UserCard needs to know which button to spin.
-            // It checks: is this card's id == pendingId.id?
-            pendingId={pendingId}
+            pendingId={pendingAction}
             onAccept={(id) => handleReview(id, "accepted")}
             onReject={(id) => handleReview(id, "rejected")}
           />

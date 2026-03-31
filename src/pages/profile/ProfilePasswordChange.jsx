@@ -100,7 +100,7 @@
 import { Formik, Form } from "formik";
 import { FiLock, FiX } from "react-icons/fi";
 import { motion } from "framer-motion";
-import { confirmPasswordSchema } from "../../utils/validation";
+import { changePasswordSchema } from "../../utils/validation";
 import PasswordInput from "../../components/common/PasswordInput";
 import { useChangePasswordMutation } from "../../hooks/auth/useAuthMutation";
 
@@ -157,7 +157,7 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
         {/* Form */}
         <Formik
           initialValues={initialValues}
-          validationSchema={confirmPasswordSchema}
+          validationSchema={changePasswordSchema}
           onSubmit={handleSubmit}
         >
           <Form className="flex flex-col gap-4">

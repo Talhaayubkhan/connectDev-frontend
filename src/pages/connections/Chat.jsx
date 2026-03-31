@@ -5,11 +5,14 @@ import { createSocketConnection } from "../../utils/socket";
 import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";
 import { IoIosArrowBack } from "react-icons/io";
 import { EVENTS } from "../../utils/constants";
+import { useAllChats } from "../../hooks/chats/useAllChats";
 
 const Chat = () => {
   // chatPartnerId → the userId of the person you're chatting with (from URL params)
   const { userId: chatPartnerId } = useParams();
   const navigate = useNavigate();
+  const { data } = useAllChats();
+  console.log("All Chats query", data);
 
   // messages → array of all chat bubbles (sent + received)
   // messageInput → controlled value of the text input box

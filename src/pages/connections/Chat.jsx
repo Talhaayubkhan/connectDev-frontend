@@ -5,7 +5,7 @@ import { createSocketConnection } from "../../utils/socket";
 import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";
 import { IoIosArrowBack } from "react-icons/io";
 import { EVENTS } from "../../utils/constants";
-import { useAllChats } from "../../hooks/chats/useAllChats";
+import { useAllChats } from "../../hooks/chats/useOrCreateChat";
 
 const Chat = () => {
   // chatPartnerId → the userId of the person you're chatting with (from URL params)

@@ -1,36 +1,45 @@
 import { Outlet, useParams } from "react-router-dom";
 import ChatSidebar from "../pages/connections/ChatSidebar";
-// ─────────────────────────────────────────────
-//  ChatLayout
-//
-//  Renders:
-//    [ ChatSidebar ] [ <Outlet /> ]
-//
-//  When URL is /chat        → Outlet = empty (just sidebar shown)
-//  When URL is /chat/:userId → Outlet = ChatWindow for that user
-//
-//  WHY a layout component?
-//  → Keeps sidebar always visible while only the right panel changes
-//  → Avoids re-mounting sidebar on every navigation between chats
-//  → Clean separation: routing handles which chat is open
-// ─────────────────────────────────────────────
+
+// WHY: On mobile we want EITHER sidebar OR chat visible, not both.
+// We use CSS to hide/show based on whether a userId is in the URL.
 
 const ChatLayout = () => {
   const { userId } = useParams();
 
   return (
-    <div className="flex justify-center px-3 mt-6">
-      <div className="w-full max-w-5xl h-[85vh] flex bg-base-100 shadow-xl rounded-2xl border border-base-300 overflow-hidden">
-        {/* ── SIDEBAR (always visible) ── */}
-        <ChatSidebar />
+    // Removed fixed px-3 mt-6 wrapper — let it fill available space
+    // Added min-h-0 so flex children can scroll correctly inside flex parent
+    <div className="flex justify-center px-2 sm:px-4 mt-4 sm:mt-6">
+      <div
+        className="w-full max-w-5xl flex bg-base-100 shadow-xl rounded-2xl border border-base-300 overflow-hidden"
+        style={{ height: "calc(100dvh - 80px)" }}
+        // WHY dvh not vh: dvh accounts for mobile browser address bar
+      >
+        {/* 
+          RESPONSIVE STRATEGY:
+          - Mobile: sidebar fills screen when no chat open; hidden when chat open
+          - Desktop: both sidebar and chat panel side by side always
+          
+          We use conditional classes based on userId presence
+        */}
+        <div
+          className={`
+          ${userId ? "hidden md:flex" : "flex w-full md:w-80"}
+          md:w-80 h-full
+        `}
+        >
+          <ChatSidebar />
+        </div>
 
-        {/* ── RIGHT PANEL ── */}
+        {/* Right panel */}
         {userId ? (
-          // A conversation is selected → render it
-          <Outlet />
+          <div className="flex-1 flex flex-col min-h-0 min-w-0">
+            <Outlet />
+          </div>
         ) : (
-          // No conversation selected → empty state
-          <div className="flex-1 flex flex-col items-center justify-center gap-3 bg-base-100">
+          // Only shown on desktop — on mobile, sidebar takes full width above
+          <div className="hidden md:flex flex-1 flex-col items-center justify-center gap-3 bg-base-100">
             <div className="w-16 h-16 rounded-full bg-base-200 flex items-center justify-center text-3xl">
               💬
             </div>

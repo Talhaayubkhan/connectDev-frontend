@@ -79,7 +79,7 @@ import UniqueProfile from "../pages/profile/UniqueProfile";
 
 // ── NEW: Split Chat into Layout + Window ──
 import ChatLayout from "../layouts/ChatLayout";
-import ChatWindow from "../pages/connections/ChatWindow";
+import ChatWindow from "../pages/connections/Chat";
 
 // ─────────────────────────────────────────────────────────────
 //  ROUTE STRUCTURE CHANGE EXPLAINED:

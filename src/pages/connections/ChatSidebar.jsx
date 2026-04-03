@@ -6,6 +6,7 @@ const ChatSidebar = () => {
   const { userId: activeChatPartnerId } = useParams();
   const navigate = useNavigate();
   const { data: chats = [], isLoading, error } = useOrCreateChat();
+  console.log("sidebar chats", chats);
 
   // Format timestamp to human-readable "2h ago", "Yesterday", etc.
   const formatTime = (dateStr) => {

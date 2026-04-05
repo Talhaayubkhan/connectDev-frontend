@@ -1,14 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchOrCreateChat } from "../../services/chats/allChats";
 
-//  useOrCreateChat
-//  Calls GET /chats/user/:targetUserId
-//  Returns: { chat: { _id, otherUser, lastMessage }, messages: [...] }
+// useOrCreateChat
+// Calls GET /chats/user/:targetUserId
+// Returns: { chat: { _id, otherUser }, messages: [...] }
 //
-//  WHY `enabled: !!targetUserId`?
-//  → Don't run the query until we actually have a userId
-//  → Prevents a request with undefined in the URL
-
+// staleTime: 30s — avoids re-fetching when switching back to an open chat quickly.
+// The socket layer keeps the message list live; React Query only needs to seed it.
 export const useOrCreateChat = (targetUserId) => {
   return useQuery({
     queryKey: ["chat", targetUserId],

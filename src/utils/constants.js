@@ -52,4 +52,39 @@ export const EVENTS = {
   MESSAGE_RECEIVED: "messageReceived",
 };
 
+export const formatTime = (dateStr) => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffMs = now - date;
+  const mins = Math.floor(diffMs / 60000);
+  const hours = Math.floor(diffMs / 3600000);
+  const days = Math.floor(diffMs / 86400000);
+
+  if (mins < 1) return "now";
+  if (mins < 60) return `${mins}m`;
+  if (hours < 24) return `${hours}h`;
+  if (days === 1) return "Yesterday";
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+};
+
+export const buildMessage = ({
+  id,
+  text,
+  sender,
+  senderName,
+  avatarUrl,
+  createdAt,
+}) => ({
+  id,
+  text,
+  sender,
+  senderName,
+  avatarUrl: avatarUrl || DEFAULT_AVATAR,
+  time: new Date(createdAt || Date.now()).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  }),
+});
+
 // export const API_URL = { BASE_URL };

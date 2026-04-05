@@ -1,38 +1,13 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { fetchAllChats } from "../../services/chats/allChats";
-import { DEFAULT_AVATAR } from "../../utils/constants";
+import { DEFAULT_AVATAR, formatTime } from "../../utils/constants";
+import { useFetchAllChats } from "../../hooks/chats/useFetchAllChats";
 
 const ChatSidebar = () => {
   const { userId: activeChatPartnerId } = useParams();
   const navigate = useNavigate();
 
-  const {
-    data: chats, // WHY no default []: we check isLoading first now
-    isLoading, // so we don't flash "0 conversations" before data arrives
-    error,
-  } = useQuery({
-    queryKey: ["chats"],
-    queryFn: fetchAllChats,
-  });
+  const { data: chats, isLoading, error } = useFetchAllChats();
 
-  const formatTime = (dateStr) => {
-    if (!dateStr) return "";
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now - date;
-    const mins = Math.floor(diffMs / 60000);
-    const hours = Math.floor(diffMs / 3600000);
-    const days = Math.floor(diffMs / 86400000);
-
-    if (mins < 1) return "now";
-    if (mins < 60) return `${mins}m`;
-    if (hours < 24) return `${hours}h`;
-    if (days === 1) return "Yesterday";
-    return date.toLocaleDateString([], { month: "short", day: "numeric" });
-  };
-
-  // Safely derive chat count only when data is loaded
   const chatCount = chats?.length ?? 0;
 
   return (
@@ -40,7 +15,6 @@ const ChatSidebar = () => {
       {/* Header */}
       <div className="px-5 py-4 border-b border-base-300 bg-base-200 shrink-0">
         <h1 className="text-lg font-semibold tracking-tight">Messages</h1>
-        {/* WHY: only show count after loading — avoids "0 conversations" flash */}
         {!isLoading && (
           <p className="text-xs text-base-content/50 mt-1">
             {chatCount} conversation{chatCount !== 1 ? "s" : ""}
@@ -48,7 +22,7 @@ const ChatSidebar = () => {
         )}
       </div>
 
-      {/* Chat List */}
+      {/* Chat list */}
       <div className="flex-1 overflow-y-auto">
         {isLoading && (
           <div className="flex justify-center items-center h-40">
@@ -73,7 +47,8 @@ const ChatSidebar = () => {
         )}
 
         {chats?.map((chat) => {
-          const isActive = activeChatPartnerId === chat.otherUser?._id;
+          const isActive =
+            activeChatPartnerId === chat.otherUser?._id?.toString();
 
           return (
             <button
@@ -112,13 +87,14 @@ const ChatSidebar = () => {
                 <p className="text-xs text-base-content/60 truncate mt-1">
                   {chat.lastMessage ? (
                     <>
+                      {/* isMine flag now comes from the backend — no client-side guessing */}
                       {chat.lastMessage.isMine && (
                         <span className="text-primary font-medium">You: </span>
                       )}
                       {chat.lastMessage.text}
                     </>
                   ) : (
-                    "No messages yet"
+                    <span className="italic opacity-60">No messages yet</span>
                   )}
                 </p>
               </div>

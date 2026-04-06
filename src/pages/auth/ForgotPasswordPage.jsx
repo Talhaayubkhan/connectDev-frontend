@@ -11,35 +11,37 @@
 //   const forgotPasswordMutation = useForgotPasswordMutation();
 
 //   const handleSubmit = (values, { resetForm }) => {
-//     const { email } = values;
-//     forgotPasswordMutation.mutate({ email }, { onSuccess: () => resetForm() });
+//     forgotPasswordMutation.mutate(
+//       { email: values.email },
+//       { onSuccess: () => resetForm() },
+//     );
 //   };
 
 //   return (
-//     <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
+//     <div className="min-h-screen bg-base-200 flex items-center justify-center px-4 py-6">
 //       <div className="w-full max-w-md">
-//         {/* WHY motion.div on card only?
-//             Same entrance animation as LoginPage — consistent across auth pages.
-//             y:32 → 0 + fade in. User feels the same "brand" on every auth page. */}
 //         <Motion.div
-//           className="card bg-base-100 shadow-xl"
+//           className="card bg-base-100 shadow-xl border border-base-200"
 //           initial={{ opacity: 0, y: 32 }}
 //           animate={{ opacity: 1, y: 0 }}
-//           transition={{ duration: 0.4, ease: "easeOut" }}
+//           transition={{ duration: 0.4 }}
 //         >
-//           <div className="card-body gap-5">
-//             {/* Icon + heading */}
+//           {/* Top Accent */}
+//           <div className="h-1.5 w-full bg-gradient-to-r from-primary to-secondary" />
+
+//           <div className="card-body gap-6">
+//             {/* Header */}
 //             <div className="flex flex-col items-center text-center gap-2">
 //               <div className="bg-primary/10 p-4 rounded-full">
-//                 <FiMail size={28} className="text-primary" />
+//                 <FiMail size={26} className="text-primary" />
 //               </div>
-//               <h2 className="text-xl font-bold">Forgot Password?</h2>
-//               <p className="text-sm text-base-content/50">
-//                 Enter your email and we'll send you a reset link.
+
+//               <h2 className="text-xl font-bold">Forgot Password</h2>
+
+//               <p className="text-sm text-base-content/60 max-w-xs">
+//                 Enter your email and we’ll send you a secure reset link.
 //               </p>
 //             </div>
-
-//             <div className="divider my-0" />
 
 //             <Formik
 //               initialValues={{ email: "" }}
@@ -48,41 +50,49 @@
 //             >
 //               {() => (
 //                 <Form className="flex flex-col gap-4">
+//                   {/* Email */}
 //                   <div>
 //                     <label className="label">
-//                       <span className="label-text flex items-center gap-1">
-//                         <FiMail size={12} /> Email Address
+//                       <span className="label-text flex items-center gap-2 text-base-content/70">
+//                         <FiMail size={14} /> Email Address
 //                       </span>
 //                     </label>
+
 //                     <Field
 //                       type="email"
 //                       name="email"
 //                       placeholder="you@example.com"
-//                       className="input input-bordered w-full"
+//                       className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-primary/20 transition"
 //                     />
+
 //                     <ErrorMessage
 //                       name="email"
 //                       component="div"
 //                       className="text-error text-xs mt-1"
 //                     />
 //                   </div>
+
+//                   {/* Submit */}
 //                   <Motion.button
 //                     type="submit"
 //                     disabled={forgotPasswordMutation.isPending}
-//                     className="btn btn-primary w-full mt-1"
+//                     className="btn btn-primary w-full mt-1 shadow-md hover:shadow-lg transition"
 //                     whileTap={{ scale: 0.97 }}
-//                     transition={{ duration: 0.1 }}
 //                   >
-//                     {forgotPasswordMutation.isPending && (
-//                       <span className="loading loading-spinner loading-sm" />
+//                     {forgotPasswordMutation.isPending ? (
+//                       <>
+//                         <span className="loading loading-spinner loading-sm" />
+//                         Sending...
+//                       </>
+//                     ) : (
+//                       "Send Reset Link"
 //                     )}
-//                     {forgotPasswordMutation.isPending
-//                       ? "Sending..."
-//                       : "Send Reset Link"}
 //                   </Motion.button>
+
+//                   {/* Back */}
 //                   <Link
 //                     to="/auth/login"
-//                     className="btn btn-ghost btn-sm w-full flex items-center gap-2"
+//                     className="btn btn-ghost btn-sm w-full flex items-center justify-center gap-2 text-base-content/70"
 //                   >
 //                     <FiArrowLeft size={14} /> Back to Login
 //                   </Link>
@@ -100,46 +110,73 @@
 
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import { Link } from "react-router-dom";
-import { FiMail, FiArrowLeft } from "react-icons/fi";
+import { FiMail, FiArrowLeft, FiSend, FiCheckCircle } from "react-icons/fi";
 import { forgotPasswordSchema } from "../../utils/validation";
 import { motion } from "framer-motion";
 import { useForgotPasswordMutation } from "../../hooks/auth/useAuthMutation";
-
-const Motion = motion;
+import { useState } from "react";
 
 const ForgotPasswordPage = () => {
   const forgotPasswordMutation = useForgotPasswordMutation();
+  const [isEmailSent, setIsEmailSent] = useState(false);
 
   const handleSubmit = (values, { resetForm }) => {
     forgotPasswordMutation.mutate(
       { email: values.email },
-      { onSuccess: () => resetForm() },
+      {
+        onSuccess: () => {
+          setIsEmailSent(true);
+          resetForm();
+        },
+      },
     );
   };
+
+  if (isEmailSent) {
+    return (
+      <div className="min-h-screen bg-base-200 flex items-center justify-center px-4">
+        <div className="w-full max-w-md text-center">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="card bg-base-100 shadow-xl p-8"
+          >
+            <div className="flex justify-center mb-4">
+              <div className="bg-success/10 p-3 rounded-full">
+                <FiCheckCircle size={40} className="text-success" />
+              </div>
+            </div>
+            <h3 className="text-xl font-bold mb-2">Check Your Email</h3>
+            <p className="text-sm text-base-content/60 mb-4">
+              We've sent a password reset link to your email address.
+            </p>
+            <Link to="/auth/login" className="btn btn-primary btn-sm">
+              Back to Login
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-base-200 flex items-center justify-center px-4 py-6">
       <div className="w-full max-w-md">
-        <Motion.div
-          className="card bg-base-100 shadow-xl border border-base-200"
-          initial={{ opacity: 0, y: 32 }}
+        <motion.div
+          className="card bg-base-100 shadow-xl"
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
+          transition={{ duration: 0.3 }}
         >
-          {/* Top Accent */}
-          <div className="h-1.5 w-full bg-gradient-to-r from-primary to-secondary" />
-
-          <div className="card-body gap-6">
+          <div className="card-body gap-5 p-6">
             {/* Header */}
-            <div className="flex flex-col items-center text-center gap-2">
-              <div className="bg-primary/10 p-4 rounded-full">
-                <FiMail size={26} className="text-primary" />
+            <div className="text-center space-y-2">
+              <div className="bg-primary/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto">
+                <FiMail size={24} className="text-primary" />
               </div>
-
-              <h2 className="text-xl font-bold">Forgot Password</h2>
-
-              <p className="text-sm text-base-content/60 max-w-xs">
-                Enter your email and we’ll send you a secure reset link.
+              <h2 className="text-2xl font-bold">Reset Password</h2>
+              <p className="text-sm text-base-content/60">
+                Enter your email to receive a reset link
               </p>
             </div>
 
@@ -148,23 +185,19 @@ const ForgotPasswordPage = () => {
               validationSchema={forgotPasswordSchema}
               onSubmit={handleSubmit}
             >
-              {() => (
-                <Form className="flex flex-col gap-4">
-                  {/* Email */}
+              {({ isValid, dirty }) => (
+                <Form className="space-y-4">
                   <div>
                     <label className="label">
-                      <span className="label-text flex items-center gap-2 text-base-content/70">
-                        <FiMail size={14} /> Email Address
-                      </span>
+                      <span className="label-text">Email Address</span>
                     </label>
-
                     <Field
                       type="email"
                       name="email"
                       placeholder="you@example.com"
-                      className="input input-bordered w-full focus:outline-none focus:ring-2 focus:ring-primary/20 transition"
+                      className="input input-bordered w-full"
+                      autoFocus
                     />
-
                     <ErrorMessage
                       name="email"
                       component="div"
@@ -172,12 +205,10 @@ const ForgotPasswordPage = () => {
                     />
                   </div>
 
-                  {/* Submit */}
-                  <Motion.button
+                  <button
                     type="submit"
-                    disabled={forgotPasswordMutation.isPending}
-                    className="btn btn-primary w-full mt-1 shadow-md hover:shadow-lg transition"
-                    whileTap={{ scale: 0.97 }}
+                    disabled={forgotPasswordMutation.isPending || !dirty}
+                    className="btn btn-primary w-full gap-2"
                   >
                     {forgotPasswordMutation.isPending ? (
                       <>
@@ -185,22 +216,25 @@ const ForgotPasswordPage = () => {
                         Sending...
                       </>
                     ) : (
-                      "Send Reset Link"
+                      <>
+                        <FiSend size={14} />
+                        Send Reset Link
+                      </>
                     )}
-                  </Motion.button>
+                  </button>
 
-                  {/* Back */}
                   <Link
                     to="/auth/login"
-                    className="btn btn-ghost btn-sm w-full flex items-center justify-center gap-2 text-base-content/70"
+                    className="btn btn-ghost btn-sm w-full"
                   >
-                    <FiArrowLeft size={14} /> Back to Login
+                    <FiArrowLeft size={14} className="mr-1" />
+                    Back to Login
                   </Link>
                 </Form>
               )}
             </Formik>
           </div>
-        </Motion.div>
+        </motion.div>
       </div>
     </div>
   );

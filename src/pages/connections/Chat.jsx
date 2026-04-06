@@ -1,194 +1,121 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { useEffect, useState, useRef, useCallback } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState, useRef } from "react";
 import { createSocketConnection } from "../../utils/socket";
 import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";
 import { IoIosArrowBack } from "react-icons/io";
-import { EVENTS, DEFAULT_AVATAR, buildMessage } from "../../utils/constants";
+import { EVENTS, DEFAULT_AVATAR } from "../../utils/constants";
 import { useOrCreateChat } from "../../hooks/chats/useOrCreateChat";
-import { fetchMessages } from "../../services/chats/allChats";
 
-// Helper: build a normalised message object from raw DB/socket data
+// ─────────────────────────────────────────────
+//  WHAT this component does:
+//  1. Loads old messages from DB via useOrCreateChat (REST)
+//  2. Connects socket for live send/receive
+//  3. Renders message bubbles + input box
+// ─────────────────────────────────────────────
 
 const ChatWindow = () => {
   const { userId: chatPartnerId } = useParams();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
-  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
-  const [hasMore, setHasMore] = useState(false);
-  const [page, setPage] = useState(1);
 
+  // socketRef: holds socket instance without causing re-renders
   const socketRef = useRef(null);
+  // messagesEndRef: invisible div at bottom used for auto-scroll
   const messagesEndRef = useRef(null);
-  const messagesTopRef = useRef(null); // sentinel for infinite scroll up
+  // chatIdRef: stores chatId once loaded, so socket JOIN has it
   const chatIdRef = useRef(null);
-  const pageRef = useRef(1); // ref mirror so loadOlder callback is stable
-  const seenIdsRef = useRef(new Set()); // FIX: dedup guard — prevents duplicate messages on reconnect
-
-  // WHY ref: socket callback needs latest chatPartner without re-creating the socket
-  const chatPartnerRef = useRef(null);
 
   const currentUser = useSelector((store) => store?.auth?.user);
   const currentUserId = currentUser?._id;
 
+  // chatPartner profile (name, photo) from their userId
   const {
     data: chatPartner,
     isLoading: partnerLoading,
     error: partnerError,
   } = useUniqueProfile(chatPartnerId);
 
+  // ── STEP 1: Load old messages from DB via REST ──
+  // WHY: Socket only handles NEW messages sent after page loads.
+  //      Old messages must come from DB on mount.
   const { data: chatData, isLoading: chatLoading } =
     useOrCreateChat(chatPartnerId);
 
-  // Keep ref in sync so socket callback always has fresh chatPartner
-  useEffect(() => {
-    chatPartnerRef.current = chatPartner;
-  }, [chatPartner]);
-
-  // ── Seed messages from DB on initial load ────────────────────────────────
+  // ── STEP 2: Seed state with old messages when chatData arrives ──
   useEffect(() => {
     if (!chatData?.messages || !currentUserId) return;
 
-    const loaded = [...chatData.messages].reverse().map((msg) => {
-      const isMine = msg.sender?.toString() === currentUserId?.toString();
-      const id = msg._id;
-
-      // Seed the dedup set so incoming socket events for already-loaded msgs are ignored
-      seenIdsRef.current.add(id);
-
-      return buildMessage({
-        id,
-        text: msg.text,
-        sender: isMine ? "me" : "other",
-        senderName: isMine ? currentUser?.firstName : chatPartner?.firstName,
-        avatarUrl: isMine ? currentUser?.photoURL : chatPartner?.photoURL,
-        createdAt: msg.createdAt,
+    const loaded = [...chatData.messages]
+      .reverse() // DB returns newest first → reverse for oldest-first display
+      .map((msg) => {
+        const isMine = msg.sender?.toString() === currentUserId?.toString();
+        return {
+          id: msg._id,
+          text: msg.text,
+          sender: isMine ? "me" : "other",
+          senderName: isMine ? currentUser?.firstName : chatPartner?.firstName,
+          avatarUrl: isMine
+            ? currentUser?.photoURL
+            : chatPartner?.photoURL || DEFAULT_AVATAR,
+          time: new Date(msg.createdAt).toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          status: isMine ? "sent" : undefined,
+        };
       });
-    });
 
     setMessages(loaded);
 
+    // Store chatId so socket JOIN can use it
     if (chatData?.chat?._id) {
       chatIdRef.current = chatData.chat._id;
     }
+  }, [chatData, currentUserId]);
 
-    // Check if there are older messages to load
-    setHasMore(loaded.length === 20);
-    setPage(1);
-    pageRef.current = 1;
-  }, [chatData, currentUserId, chatPartner]);
-
-  // ── Auto-scroll to bottom on new messages ────────────────────────────────
+  // ── STEP 3: Auto-scroll to bottom on new message ──
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ── Load older messages (scroll-up pagination) ───────────────────────────
-  const loadOlderMessages = useCallback(async () => {
-    if (!chatIdRef.current || isLoadingOlder || !hasMore) return;
-
-    setIsLoadingOlder(true);
-    try {
-      const nextPage = pageRef.current + 1;
-      const result = await fetchMessages(chatIdRef.current, nextPage);
-
-      if (!result?.messages?.length) {
-        setHasMore(false);
-        return;
-      }
-
-      const older = [...result.messages].reverse().map((msg) => {
-        const isMine = msg.sender?.toString() === currentUserId?.toString();
-        const id = msg._id;
-        seenIdsRef.current.add(id);
-
-        return buildMessage({
-          id,
-          text: msg.text,
-          sender: isMine ? "me" : "other",
-          senderName: isMine
-            ? currentUser?.firstName
-            : chatPartnerRef.current?.firstName,
-          avatarUrl: isMine
-            ? currentUser?.photoURL
-            : chatPartnerRef.current?.photoURL,
-          createdAt: msg.createdAt,
-        });
-      });
-
-      // Prepend older messages without scrolling to bottom
-      setMessages((prev) => [...older, ...prev]);
-      setHasMore(result.pagination?.hasMore ?? false);
-      pageRef.current = nextPage;
-      setPage(nextPage);
-    } catch (err) {
-      console.error("Failed to load older messages:", err);
-    } finally {
-      setIsLoadingOlder(false);
-    }
-  }, [isLoadingOlder, hasMore, currentUserId, currentUser]);
-
-  // ── IntersectionObserver: load older when user scrolls to top ────────────
-  useEffect(() => {
-    const sentinel = messagesTopRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && hasMore && !isLoadingOlder) {
-          loadOlderMessages();
-        }
-      },
-      { threshold: 0.1 },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [hasMore, isLoadingOlder, loadOlderMessages]);
-
-  // ── Socket setup ─────────────────────────────────────────────────────────
-  // FIX: chatData removed from deps — chatIdRef is set in the seed effect first.
-  // This prevents the socket from disconnecting/reconnecting every time chatData
-  // is refetched by React Query (e.g. window focus, stale-while-revalidate).
+  // ── STEP 4: Socket setup ──
+  // WHY separate from REST: REST loads history, socket handles live flow
   useEffect(() => {
     if (!currentUserId || !chatPartnerId) return;
 
     const socket = createSocketConnection();
     socketRef.current = socket;
 
+    // Remove old listener first — prevents duplicate messages on re-render
     socket.off(EVENTS.MESSAGE_RECEIVED);
 
-    socket.on(
-      EVENTS.MESSAGE_RECEIVED,
-      ({ _id, firstName, text, createdAt }) => {
-        // FIX: dedup — ignore message if we've already seeded it from the DB
-        // This prevents duplicates when the server replays recent messages on JOIN
-        const msgId = _id || `${Date.now()}-${Math.random()}`;
-        if (_id && seenIdsRef.current.has(_id)) return;
-        seenIdsRef.current.add(msgId);
+    socket.on(EVENTS.MESSAGE_RECEIVED, ({ firstName, text, createdAt }) => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}-${Math.random()}`,
+          text,
+          sender: "other",
+          senderName: firstName,
+          avatarUrl: chatPartner?.photoURL || DEFAULT_AVATAR,
+          time: createdAt
+            ? new Date(createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : new Date().toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+        },
+      ]);
+    });
 
-        setMessages((prev) => [
-          ...prev,
-          buildMessage({
-            id: msgId,
-            text,
-            sender: "other",
-            senderName: firstName,
-            avatarUrl: chatPartnerRef.current?.photoURL,
-            createdAt,
-          }),
-        ]);
-
-        // FIX: invalidate sidebar so last-message preview updates in real time
-        queryClient.invalidateQueries({ queryKey: ["chats"] });
-      },
-    );
-
-    // Emit JOIN once chatIdRef is set (ref is set synchronously in seed effect before this runs)
+    // Join the socket room
+    // WHY send receiverId and not senderId? Backend gets YOUR id from JWT — never trust client for identity
     socket.emit(EVENTS.JOIN_CHAT, {
       receiverId: chatPartnerId,
       ...(chatIdRef.current && { chatId: chatIdRef.current }),
@@ -197,17 +124,12 @@ const ChatWindow = () => {
     return () => {
       socket.disconnect();
     };
-  }, [currentUserId, chatPartnerId, queryClient]); // stable deps only — no chatData
+  }, [currentUserId, chatPartnerId]);
 
-  // ── Send message ─────────────────────────────────────────────────────────
+  // ── STEP 5: Send message ──
   const handleSendMessage = () => {
     const trimmed = messageInput.trim();
     if (!trimmed || !socketRef.current) return;
-
-    // Optimistic message gets a temp ID prefixed with "optimistic-"
-    // so we can identify and remove/update it on server error if needed
-    const optimisticId = `optimistic-${Date.now()}-${Math.random()}`;
-    seenIdsRef.current.add(optimisticId); // prevent dedup collision
 
     socketRef.current.emit(EVENTS.SEND_MESSAGE, {
       receiverId: chatPartnerId,
@@ -215,22 +137,24 @@ const ChatWindow = () => {
       ...(chatIdRef.current && { chatId: chatIdRef.current }),
     });
 
+    // Optimistic update: show message instantly without waiting for server
     setMessages((prev) => [
       ...prev,
-      buildMessage({
-        id: optimisticId,
+      {
+        id: `${Date.now()}-${Math.random()}`,
         text: trimmed,
         sender: "me",
         senderName: currentUser?.firstName,
         avatarUrl: currentUser?.photoURL,
-        createdAt: new Date(),
-      }),
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+        status: "sent",
+      },
     ]);
 
     setMessageInput("");
-
-    // Invalidate sidebar preview for sender side too
-    queryClient.invalidateQueries({ queryKey: ["chats"] });
   };
 
   const handleKeyDown = (e) => {
@@ -240,7 +164,7 @@ const ChatWindow = () => {
     }
   };
 
-  // ── Loading / error states ───────────────────────────────────────────────
+  // ── LOADING STATE ──
   if (partnerLoading || chatLoading) {
     return (
       <div className="flex-1 flex justify-center items-center h-full">
@@ -249,6 +173,7 @@ const ChatWindow = () => {
     );
   }
 
+  // ── ERROR STATE ──
   if (partnerError) {
     return (
       <div className="flex-1 flex justify-center items-center flex-col gap-3 text-error">
@@ -260,11 +185,11 @@ const ChatWindow = () => {
     );
   }
 
-  // ── Render ───────────────────────────────────────────────────────────────
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0 overflow-hidden">
+    <div className="flex-1 flex flex-col h-full overflow-hidden">
       {/* ── HEADER ── */}
       <div className="px-4 py-3 border-b border-base-300 bg-base-200 flex items-center gap-3 shrink-0">
+        {/* Back button — visible on mobile */}
         <button
           className="btn btn-ghost btn-sm btn-circle md:hidden"
           onClick={() => navigate("/chat")}
@@ -273,7 +198,8 @@ const ChatWindow = () => {
           <IoIosArrowBack size={20} />
         </button>
 
-        <div className="avatar">
+        {/* Avatar */}
+        <div className="avatar online">
           <div className="w-10 h-10 rounded-full ring-2 ring-primary/30 overflow-hidden">
             <img
               src={chatPartner?.photoURL || DEFAULT_AVATAR}
@@ -283,41 +209,18 @@ const ChatWindow = () => {
           </div>
         </div>
 
-        <div className="flex-1 min-w-0">
-          <h2 className="font-semibold text-sm leading-tight text-base-content truncate">
+        {/* Name + status */}
+        <div className="flex-1">
+          <h2 className="font-semibold text-sm leading-tight text-base-content">
             {chatPartner?.firstName} {chatPartner?.lastName}
           </h2>
-          {/* FIX: removed hardcoded "Online" — only show when you have real presence */}
+          <p className="text-xs text-success">Online</p>
         </div>
       </div>
 
       {/* ── MESSAGES AREA ── */}
-      {/* WHY min-h-0: without it, flex children don't shrink and overflow-y-auto breaks */}
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 py-4 space-y-3 bg-base-100">
-        {/* Scroll-up sentinel for IntersectionObserver */}
-        <div ref={messagesTopRef} className="h-1" />
-
-        {/* Load older spinner */}
-        {isLoadingOlder && (
-          <div className="flex justify-center py-2">
-            <span className="loading loading-spinner loading-sm text-primary" />
-          </div>
-        )}
-
-        {/* Load older button fallback */}
-        {hasMore && !isLoadingOlder && (
-          <div className="flex justify-center">
-            <button
-              className="btn btn-ghost btn-xs text-base-content/50"
-              onClick={loadOlderMessages}
-            >
-              Load older messages
-            </button>
-          </div>
-        )}
-
-        {/* FIX: only show empty state after loading is done — prevents flash */}
-        {!chatLoading && messages.length === 0 && (
+      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-base-100">
+        {messages.length === 0 && (
           <div className="flex flex-col justify-center items-center h-full gap-3">
             <div className="avatar">
               <div className="w-16 h-16 rounded-full overflow-hidden opacity-60">
@@ -328,7 +231,7 @@ const ChatWindow = () => {
                 />
               </div>
             </div>
-            <p className="text-base-content/40 text-sm text-center">
+            <p className="text-base-content/40 text-sm">
               No messages yet. Say hello to{" "}
               <span className="font-semibold">{chatPartner?.firstName}</span>!
               👋
@@ -342,10 +245,11 @@ const ChatWindow = () => {
             className={`flex ${msg.sender === "me" ? "justify-end" : "justify-start"}`}
           >
             <div
-              className={`flex items-end gap-2 max-w-[75%] sm:max-w-[65%] ${
+              className={`flex items-end gap-2 max-w-[70%] ${
                 msg.sender === "me" ? "flex-row-reverse" : ""
               }`}
             >
+              {/* Avatar — only for received messages */}
               {msg.sender !== "me" && (
                 <div className="avatar shrink-0">
                   <div className="w-7 h-7 rounded-full overflow-hidden">
@@ -363,31 +267,37 @@ const ChatWindow = () => {
                   msg.sender === "me" ? "items-end" : "items-start"
                 }`}
               >
+                {/* Sender name — only for received */}
                 {msg.sender !== "me" && (
                   <span className="text-[10px] text-base-content/40 mb-1 px-1">
                     {msg.senderName}
                   </span>
                 )}
 
+                {/* Bubble */}
                 <div
-                  className={`px-4 py-2 rounded-2xl text-sm shadow-sm break-words ${
+                  className={`px-4 py-2 rounded-2xl text-sm shadow-sm ${
                     msg.sender === "me"
                       ? "bg-primary text-primary-content rounded-br-sm"
                       : "bg-base-200 text-base-content rounded-bl-sm"
-                  } ${msg.id?.startsWith("optimistic-") ? "opacity-70" : ""}`}
-                  // WHY opacity-70 on optimistic: subtle visual cue that message is in-flight
+                  }`}
                 >
                   {msg.text}
                 </div>
 
-                <div className="text-[10px] mt-1 px-1 opacity-40">
+                {/* Time + status */}
+                <div className="text-[10px] mt-1 px-1 opacity-40 flex items-center gap-1">
                   {msg.time}
+                  {msg.sender === "me" && msg.status && (
+                    <span className="ml-1">{msg.status}</span>
+                  )}
                 </div>
               </div>
             </div>
           </div>
         ))}
 
+        {/* Auto-scroll anchor */}
         <div ref={messagesEndRef} />
       </div>
 
@@ -401,7 +311,6 @@ const ChatWindow = () => {
             type="text"
             placeholder={`Message ${chatPartner?.firstName || ""}...`}
             className="input input-bordered w-full h-10 text-sm rounded-full px-4 focus:outline-none focus:input-primary"
-            maxLength={2000}
           />
           <button
             onClick={handleSendMessage}

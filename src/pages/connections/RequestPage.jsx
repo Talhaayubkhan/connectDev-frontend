@@ -95,7 +95,9 @@
 // };
 
 // export default RequestsPage;
-import { HiUserGroup, HiUserPlus, HiInbox } from "react-icons/hi";
+
+import { HiUserGroup } from "react-icons/hi";
+import { HiUserPlus, HiInbox } from "react-icons/hi2";
 import {
   useConnectionRequests,
   useReviewConnectionRequest,

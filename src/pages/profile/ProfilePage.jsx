@@ -600,7 +600,7 @@ const ProfilePage = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="p-6">
+                  <div className="p-6 md:m-auto md:justify-center md:items-center">
                     <ProfileCard profile={values} showActions={false} />
                   </div>
                 </div>

@@ -5,6 +5,7 @@ import apiClient from "../apiClient";
 // Shape per item: { _id, otherUser, lastMessage: { text, isMine, createdAt }, updatedAt }
 export const fetchAllChats = async () => {
   const response = await apiClient.get("chats");
+
   return response?.data?.data ?? [];
 };
 

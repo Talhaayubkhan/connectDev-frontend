@@ -7,7 +7,7 @@ const ChatSidebar = () => {
   const navigate = useNavigate();
 
   const { data: chats, isLoading, error } = useFetchAllChats();
-  console.log("all sidebar chats", chats);
+  // console.log("all sidebar chats", chats);
 
   const chatCount = chats?.length ?? 0;
 

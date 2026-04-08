@@ -70,10 +70,13 @@ import { useConnections } from "../../hooks/connections/useConnections";
 import UserCard from "../../components/common/UserCard";
 import ErrorPage from "../../components/common/ErrorPage";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 
 const ConnectionsPage = () => {
   const { data: connections, isLoading, error } = useConnections();
   const [searchTerm, setSearchTerm] = useState("");
+
+  const currentUser = useSelector((state) => state?.auth?.user);
 
   // Filter connections based on search
   const filteredConnections = connections?.filter((connection) => {
@@ -203,7 +206,11 @@ const ConnectionsPage = () => {
             </div>
             <div className="bg-base-100 rounded-lg p-3 text-center">
               <p className="text-2xl font-bold">
-                {filteredConnections.filter((c) => c?.isActive).length}
+                {currentUser?.isActive ? (
+                  <span className="text-green-500">●</span>
+                ) : (
+                  <span className="text-red-500">●</span>
+                )}
               </p>
               <p className="text-xs text-base-content/60">Online Now</p>
             </div>

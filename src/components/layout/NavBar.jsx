@@ -27,10 +27,7 @@ const NavBar = () => {
       <div className="navbar bg-base-300 shadow-sm px-4 z-40 relative">
         {/* Brand */}
         <div className="flex-1">
-          <Link
-            to="/"
-            className="btn btn-ghost text-lg font-bold tracking-tight gap-2"
-          >
+          <Link to="/" className="btn btn-ghost text-lg font-bold gap-2">
             <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
               <HiCode size={16} className="text-primary-content" />
             </div>
@@ -44,10 +41,10 @@ const NavBar = () => {
             <Link
               key={to}
               to={to}
-              className={`btn btn-ghost btn-sm rounded-lg ${
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                 isActive(to)
-                  ? "bg-primary/10 text-primary font-semibold"
-                  : "text-base-content/70"
+                  ? "bg-primary/10 text-primary"
+                  : "text-base-content/70 hover:text-base-content hover:bg-base-200"
               }`}
             >
               {label}
@@ -55,16 +52,14 @@ const NavBar = () => {
           ))}
         </div>
 
-        {/* Right — avatar + hamburger */}
+        {/* Right section */}
         <div className="flex items-center gap-2">
-          {/* Avatar dropdown — desktop only */}
+          {/* Desktop avatar */}
           <div className="dropdown dropdown-end hidden md:block">
             <div
               tabIndex={0}
               role="button"
-              className={`btn btn-ghost btn-circle avatar ${
-                user?.isActive ? "online" : "offline"
-              }`}
+              className="btn btn-ghost btn-circle avatar"
             >
               <div className="w-9 rounded-full ring-2 ring-primary ring-offset-2 ring-offset-base-300">
                 <img
@@ -77,14 +72,11 @@ const NavBar = () => {
               </div>
             </div>
 
-            <ul
-              tabIndex={0}
-              className="menu menu-sm dropdown-content bg-base-100 rounded-2xl z-50 mt-3 w-60 p-2 shadow-2xl border border-base-300"
-            >
+            <ul className="menu menu-sm dropdown-content bg-base-100 rounded-xl z-50 mt-3 w-60 p-2 shadow-lg border border-base-200">
               {user?.firstName && (
                 <>
-                  <li className="px-3 py-3 cursor-default">
-                    <div className="flex items-center gap-3 hover:bg-transparent">
+                  <li className="px-3 py-2">
+                    <div className="flex items-center gap-3">
                       <div
                         className={`avatar ${user?.isActive ? "online" : "offline"}`}
                       >
@@ -92,9 +84,6 @@ const NavBar = () => {
                           <img
                             src={user?.photoURL || DEFAULT_AVATAR}
                             alt={user.firstName}
-                            onError={(e) => {
-                              e.currentTarget.src = DEFAULT_AVATAR;
-                            }}
                           />
                         </div>
                       </div>
@@ -102,19 +91,8 @@ const NavBar = () => {
                         <span className="font-semibold text-sm">
                           {user.firstName} {user.lastName}
                         </span>
-                        <span className="text-xs text-base-content/50">
+                        <span className="text-xs text-base-content/50 truncate max-w-[150px]">
                           {user.email}
-                        </span>
-                        <span
-                          className={`text-xs font-medium mt-0.5 ${
-                            user?.isActive
-                              ? "text-success"
-                              : "text-base-content/40"
-                          }`}
-                        >
-                          {user?.isActive
-                            ? "● Online"
-                            : `Last seen ${formatLastSeen(user?.lastSeen)}`}
                         </span>
                       </div>
                     </div>
@@ -124,10 +102,7 @@ const NavBar = () => {
               )}
 
               <li>
-                <Link
-                  to="/profile"
-                  className={`flex items-center gap-2 rounded-lg ${isActive("/profile") ? "active" : ""}`}
-                >
+                <Link to="/profile" className="flex items-center gap-2">
                   <FiUser size={14} /> Profile
                 </Link>
               </li>
@@ -136,7 +111,7 @@ const NavBar = () => {
                 <button
                   onClick={() => setShowLogoutPopup(true)}
                   disabled={logoutMutation.isPending}
-                  className="flex items-center gap-2 text-error hover:bg-error/10 rounded-lg"
+                  className="flex items-center gap-2 text-error"
                 >
                   <TbLogout size={15} />
                   {logoutMutation.isPending ? "Logging out..." : "Logout"}
@@ -145,16 +120,13 @@ const NavBar = () => {
             </ul>
           </div>
 
-          {/* Mobile — avatar + hamburger */}
+          {/* Mobile controls */}
           <div className="flex items-center gap-2 md:hidden">
             <div className={`avatar ${user?.isActive ? "online" : "offline"}`}>
               <div className="w-8 rounded-full ring-2 ring-primary ring-offset-1 ring-offset-base-300">
                 <img
                   src={user?.photoURL || DEFAULT_AVATAR}
                   alt={user?.firstName || "avatar"}
-                  onError={(e) => {
-                    e.currentTarget.src = DEFAULT_AVATAR;
-                  }}
                 />
               </div>
             </div>
@@ -168,20 +140,16 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* Mobile — full screen overlay menu */}
+      {/* Mobile menu */}
       {mobileMenuOpen && (
         <>
-          {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 md:hidden"
+            className="fixed inset-0 bg-black/50 z-50 md:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
-
-          {/* Slide-in panel from right */}
-          <div className="fixed top-0 right-0 h-full w-72 bg-base-100 z-50 shadow-2xl md:hidden flex flex-col">
-            {/* Panel header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-base-300">
-              <span className="font-bold text-base-content">Menu</span>
+          <div className="fixed top-0 right-0 h-full w-72 bg-base-100 z-50 shadow-xl md:hidden flex flex-col">
+            <div className="flex items-center justify-between px-5 py-4 border-b">
+              <span className="font-bold">Menu</span>
               <button
                 className="btn btn-ghost btn-circle btn-sm"
                 onClick={() => setMobileMenuOpen(false)}
@@ -190,9 +158,8 @@ const NavBar = () => {
               </button>
             </div>
 
-            {/* User info */}
             {user?.firstName && (
-              <div className="flex items-center gap-3 px-5 py-4 border-b border-base-300">
+              <div className="flex items-center gap-3 px-5 py-4 border-b">
                 <div
                   className={`avatar ${user?.isActive ? "online" : "offline"}`}
                 >
@@ -200,9 +167,6 @@ const NavBar = () => {
                     <img
                       src={user?.photoURL || DEFAULT_AVATAR}
                       alt={user.firstName}
-                      onError={(e) => {
-                        e.currentTarget.src = DEFAULT_AVATAR;
-                      }}
                     />
                   </div>
                 </div>
@@ -210,57 +174,47 @@ const NavBar = () => {
                   <p className="font-semibold text-sm">
                     {user.firstName} {user.lastName}
                   </p>
-                  <p
-                    className={`text-xs ${user?.isActive ? "text-success" : "text-base-content/40"}`}
-                  >
-                    {user?.isActive
-                      ? "● Online"
-                      : `Last seen ${formatLastSeen(user?.lastSeen)}`}
-                  </p>
+                  <p className="text-xs text-base-content/50">{user.email}</p>
                 </div>
               </div>
             )}
 
-            {/* Nav links */}
-            <div className="flex flex-col gap-1 px-3 py-3 flex-1">
+            <div className="flex-1 py-4">
               {navLinks.map(({ to, label }) => (
                 <Link
                   key={to}
                   to={to}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+                  className={`flex px-5 py-3 text-sm font-medium ${
                     isActive(to)
                       ? "bg-primary/10 text-primary"
-                      : "hover:bg-base-200 text-base-content/80"
+                      : "hover:bg-base-200"
                   }`}
                 >
                   {label}
                 </Link>
               ))}
 
-              <div className="divider my-1" />
-
               <Link
                 to="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition ${
+                className={`flex px-5 py-3 text-sm font-medium ${
                   isActive("/profile")
                     ? "bg-primary/10 text-primary"
-                    : "hover:bg-base-200 text-base-content/80"
+                    : "hover:bg-base-200"
                 }`}
               >
-                <FiUser size={15} /> Profile
+                <FiUser size={15} className="mr-2" /> Profile
               </Link>
             </div>
 
-            {/* Logout at bottom */}
-            <div className="px-3 py-4 border-t border-base-300">
+            <div className="p-4 border-t">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   setShowLogoutPopup(true);
                 }}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium text-error hover:bg-error/10 transition w-full"
+                className="flex items-center gap-2 text-error w-full px-5 py-3 text-sm font-medium hover:bg-error/10 rounded-lg"
               >
                 <TbLogout size={16} /> Logout
               </button>

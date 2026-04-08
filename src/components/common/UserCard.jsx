@@ -265,7 +265,7 @@ const UserCard = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-row sm:flex-col gap-2 justify-center sm:justify-start">
+          <div className="flex flex-row sm:flex-col gap-6 justify-center sm:justify-start">
             {mode === "connection" && (
               <>
                 <Link to={`/chat/${_id}`} className="flex-1 sm:flex-none">
@@ -277,7 +277,7 @@ const UserCard = ({
                 <Link to={`/profile/${_id}`} className="flex-1 sm:flex-none">
                   <button className="btn btn-outline btn-sm w-full gap-2">
                     <FiUser size={14} />
-                    Profile
+                    View Profile
                   </button>
                 </Link>
               </>

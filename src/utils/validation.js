@@ -1,116 +1,63 @@
-// import * as Yup from "yup";
-
-// export const registerSchema = Yup.object().shape({
-//   firstName: Yup.string().min(2).max(50).required("First name is required"),
-//   lastName: Yup.string().min(2).max(50),
-//   email: Yup.string().email("Invalid email").required("Email is required"),
-//   password: Yup.string()
-//     .min(8, "Password too short")
-//     .matches(/[A-Z]/, "Must contain uppercase")
-//     .matches(/[0-9]/, "Must contain a number")
-//     .required("Password is required"),
-//   confirmPassword: Yup.string()
-//     .oneOf([Yup.ref("password"), null], "Passwords must match")
-//     .required("Confirm password is required"),
-// });
-
-// export const loginSchema = Yup.object().shape({
-//   email: Yup.string().email("Invalid email").required("Email is required"),
-//   password: Yup.string().required("Password is required"),
-// });
-// export const confirmPasswordSchema = Yup.object().shape({
-//   currentPassword: Yup.string().required("Current password is required"),
-//   newPassword: Yup.string()
-//     .min(8, "Password must be at least 8 characters")
-//     .matches(/[A-Z]/, "Must contain at least one uppercase letter")
-//     .matches(/[0-9]/, "Must contain at least one number")
-//     .required("New password is required"),
-//   confirmPassword: Yup.string()
-//     .oneOf([Yup.ref("newPassword"), null], "Passwords must match") // ✅ fixed ref
-//     .required("Confirm password is required"),
-// });
-
-// export const validateEditProfileSchema = Yup.object().shape({
-//   firstName: Yup.string()
-//     .min(2, "First name must be at least 2 characters")
-//     .max(30, "First name too long")
-//     .required("First name is required"),
-
-//   lastName: Yup.string()
-//     .min(2, "Last name must be at least 2 characters")
-//     .max(30, "Last name too long")
-//     .required("Last name is required"),
-
-//   age: Yup.number()
-//     .min(18, "You must be at least 18")
-//     .max(100, "Invalid age")
-//     .positive("Age cannot be negative")
-//     .integer("Age must be a whole number")
-//     .required("Age is required"),
-
-//   gender: Yup.string()
-//     .oneOf(["male", "female", "other"], "Please select a valid gender")
-//     .required("Gender is required"),
-
-//   photoURL: Yup.string().url("Must be a valid URL").nullable(),
-
-//   about: Yup.string().max(300, "Bio cannot exceed 300 characters").nullable(),
-
-//   skills: Yup.array()
-//     .of(Yup.string().min(1))
-//     .max(10, "You can add up to 10 skills only")
-//     .nullable(),
-// });
-
-// export const forgotPasswordSchema = Yup.object({
-//   email: Yup.string().email("Invalid email").required("Email is required"),
-// });
-// export const resetPasswordSchema = Yup.object({
-//   newPassword: Yup.string()
-//     .min(8, "Min 8 characters")
-//     .matches(/[A-Z]/, "Must contain at least one uppercase letter")
-//     .matches(/[0-9]/, "Must contain at least one number")
-//     .required("Password is required"),
-//   confirmPassword: Yup.string()
-//     .oneOf([Yup.ref("newPassword")], "Passwords must match")
-//     .required("Please confirm your password"),
-// });
-
 import * as Yup from "yup";
 
-// reusable rules
+// ================= REUSABLE RULES =================
+
 const passwordRules = Yup.string()
   .min(8, "Password must be at least 8 characters")
-  .matches(/[A-Z]/, "Must contain uppercase letter")
-  .matches(/[0-9]/, "Must contain a number")
+  .matches(/[A-Z]/, "Must contain at least one uppercase letter")
+  .matches(/[0-9]/, "Must contain at least one number")
+  .matches(/[a-z]/, "Must contain at least one lowercase letter")
   .required("Password is required");
 
 const confirmPassword = (ref = "password") =>
   Yup.string()
     .oneOf([Yup.ref(ref)], "Passwords must match")
-    .required("Confirm password is required");
+    .required("Please confirm your password");
 
-// ================= AUTH =================
+// Helper for optional URL fields (handles empty strings)
+const optionalUrl = Yup.string()
+  .transform((value) => (value === "" ? null : value))
+  .nullable()
+  .url("Please enter a valid URL");
+
+// ================= AUTH SCHEMAS =================
 
 export const registerSchema = Yup.object({
-  firstName: Yup.string().trim().min(2).max(50).required(),
-  lastName: Yup.string().trim().min(2).max(50).nullable(),
+  firstName: Yup.string()
+    .trim()
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name cannot exceed 50 characters")
+    .required("First name is required"),
 
-  email: Yup.string().trim().lowercase().email("Invalid email").required(),
+  lastName: Yup.string()
+    .trim()
+    .min(2, "Last name must be at least 2 characters")
+    .max(50, "Last name cannot exceed 50 characters")
+    .nullable(),
+
+  email: Yup.string()
+    .trim()
+    .lowercase()
+    .email("Please enter a valid email address")
+    .required("Email is required"),
 
   password: passwordRules,
   confirmPassword: confirmPassword("password"),
 });
 
 export const loginSchema = Yup.object({
-  email: Yup.string().trim().lowercase().email().required(),
-  password: Yup.string().required(),
+  email: Yup.string()
+    .trim()
+    .lowercase()
+    .email("Please enter a valid email address")
+    .required("Email is required"),
+  password: Yup.string().required("Password is required"),
 });
 
-// ================= PASSWORD =================
+// ================= PASSWORD SCHEMAS =================
 
 export const changePasswordSchema = Yup.object({
-  currentPassword: Yup.string().required(),
+  currentPassword: Yup.string().required("Current password is required"),
   newPassword: passwordRules,
   confirmPassword: confirmPassword("newPassword"),
 });
@@ -120,37 +67,91 @@ export const resetPasswordSchema = Yup.object({
   confirmPassword: confirmPassword("newPassword"),
 });
 
-// ================= PROFILE =================
+// ================= PROFILE SCHEMA (FIXED & COMPLETE) =================
 
 export const editProfileSchema = Yup.object({
-  firstName: Yup.string().trim().min(2).max(50).required(),
-  lastName: Yup.string().trim().min(2).max(50).required(),
+  // Basic Info
+  firstName: Yup.string()
+    .trim()
+    .min(2, "First name must be at least 2 characters")
+    .max(50, "First name cannot exceed 50 characters")
+    .required("First name is required"),
 
+  lastName: Yup.string()
+    .trim()
+    .min(2, "Last name must be at least 2 characters")
+    .max(50, "Last name cannot exceed 50 characters")
+    .required("Last name is required"),
+
+  // NEW: Email field (user can update email)
+  email: Yup.string()
+    .trim()
+    .lowercase()
+    .email("Please enter a valid email address")
+    .required("Email address is required"),
+
+  // Age
   age: Yup.number()
     .typeError("Age must be a number")
-    .min(18)
-    .max(100)
-    .integer()
-    .required(),
+    .min(18, "You must be at least 18 years old")
+    .max(100, "Please enter a valid age (max 100)")
+    .integer("Age must be a whole number")
+    .required("Age is required"),
 
-  gender: Yup.string().oneOf(["male", "female", "other"]).required(),
+  // Gender
+  gender: Yup.string()
+    .oneOf(["male", "female", "other"], "Please select a valid gender option")
+    .required("Gender is required"),
 
-  photoURL: Yup.string().url().nullable(),
+  // Photo URL - FIXED: handles empty string
+  photoURL: optionalUrl,
 
-  about: Yup.string().trim().max(300).nullable(),
+  // About/Bio
+  about: Yup.string()
+    .trim()
+    .max(300, "Bio cannot exceed 300 characters")
+    .nullable(),
 
+  // add inside your editProfileSchema Yup object:
+  location: Yup.string().max(100, "Max 100 characters").optional(),
+  occupation: Yup.string().max(100, "Max 100 characters").optional(),
+
+  // Skills - UPDATED: max 15 to match backend, min 1 character
   skills: Yup.array()
-    .of(Yup.string().trim().min(2))
-    .max(20)
-    .test("no-duplicates", "Duplicate skills not allowed", (arr) => {
-      if (!arr) return true;
-      return new Set(arr).size === arr.length;
+    .of(
+      Yup.string()
+        .trim()
+        .min(1, "Skill cannot be empty")
+        .max(30, "Skill name too long"),
+    )
+    .max(15, "You can add up to 15 skills only") // Changed from 20 to 15
+    .test("no-duplicates", "Duplicate skills are not allowed", (arr) => {
+      if (!arr || arr.length === 0) return true;
+      const uniqueSkills = new Set(arr);
+      return uniqueSkills.size === arr.length;
     })
     .nullable(),
 });
 
-// ================= FORGOT =================
+// ================= FORGOT PASSWORD =================
 
 export const forgotPasswordSchema = Yup.object({
-  email: Yup.string().trim().lowercase().email().required(),
+  email: Yup.string()
+    .trim()
+    .lowercase()
+    .email("Please enter a valid email address")
+    .required("Email address is required"),
 });
+
+// ================= OPTIONAL: EXPORT ALL SCHEMAS =================
+
+const validationSchemas = {
+  registerSchema,
+  loginSchema,
+  changePasswordSchema,
+  resetPasswordSchema,
+  editProfileSchema,
+  forgotPasswordSchema,
+};
+
+export default validationSchemas;

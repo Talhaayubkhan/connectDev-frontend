@@ -8,7 +8,7 @@ import {
   useSignupMutation,
 } from "../../hooks/auth/useAuthMutation";
 import { toast } from "react-toastify";
-import { FiUser, FiMail, FiLock, FiAlertCircle } from "react-icons/fi";
+import { FiUser, FiMail, FiAlertCircle } from "react-icons/fi";
 import { motion, AnimatePresence } from "framer-motion";
 
 const LoginPage = () => {

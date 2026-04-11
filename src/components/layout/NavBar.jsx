@@ -1,22 +1,25 @@
 import { Link, useLocation } from "react-router-dom";
 import PopUp from "../common/PopUp";
 import { useState } from "react";
-import {
-  DEFAULT_AVATAR,
-  formatLastSeen,
-  navLinks,
-} from "../../utils/constants";
-import { useSelector } from "react-redux";
+import { DEFAULT_AVATAR, navLinks } from "../../utils/constants";
 import { useLogoutMutation } from "../../hooks/auth/useAuthMutation";
 import { AnimatePresence } from "framer-motion";
 import { FiUser, FiMenu, FiX } from "react-icons/fi";
 import { TbLogout } from "react-icons/tb";
 import { HiCode } from "react-icons/hi";
+import { useShowProfile } from "../../hooks/profile/useShowProfile";
 
 const NavBar = () => {
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const user = useSelector((state) => state?.auth?.user);
+
+  // WHY useShowProfile instead of useSelector?
+  // React Query cache survives the render cycle and is rehydrated
+  // from the server on refresh. Redux dies on refresh.
+  // Since useShowProfile is already called in ProtectedRoute,
+  // React Query returns the CACHED result here — zero extra API calls.
+  const { data: user } = useShowProfile();
+
   const location = useLocation();
   const logoutMutation = useLogoutMutation();
 
@@ -27,7 +30,7 @@ const NavBar = () => {
       <div className="navbar bg-base-300 shadow-sm px-4 z-40 relative">
         {/* Brand */}
         <div className="flex-1">
-          <Link to="/" className="btn btn-ghost text-lg font-bold gap-2">
+          <Link to="/feed" className="btn btn-ghost text-lg font-bold gap-2">
             <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
               <HiCode size={16} className="text-primary-content" />
             </div>

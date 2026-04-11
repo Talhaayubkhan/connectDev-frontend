@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { clearUser, setUser } from "../../store/features/auth/authSlice";
+import { clearUser } from "../../store/features/auth/authSlice";
 import { useDispatch } from "react-redux";
 import {
   changePassword,
@@ -14,15 +14,19 @@ import { useNavigate } from "react-router-dom";
 import { ROUTES } from "../../utils/constants";
 
 export const useLoginMutation = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: loginUser,
-    onSuccess: (response) => {
-      dispatch(setUser(response));
-      toast.success("Login successful!");
-      navigate("/");
+    onSuccess: (user) => {
+      // WHY setQueryData instead of dispatch(setUser)?
+      // React Query is now the single source of truth.
+      // Setting the cache here means ProtectedRoute, Navbar,
+      // ProfilePage — all instantly get the user WITHOUT
+      // an extra API call. No flicker, no double fetch.
+      queryClient.setQueryData(["profile"], user);
+      navigate("/feed", { replace: true });
     },
     onError: (error) => {
       const message =
@@ -33,9 +37,6 @@ export const useLoginMutation = () => {
 };
 
 export const useSignupMutation = () => {
-  // WHY no dispatch here?
-  // Backend returns no token on register — just user data.
-  // Without a token we can't authenticate the user in Redux.
   return useMutation({
     mutationFn: registerUser,
     onError: (error) => {
@@ -54,6 +55,10 @@ export const useLogoutMutation = () => {
   return useMutation({
     mutationFn: logoutUser,
     onSuccess: () => {
+      // WHY clear both?
+      // queryClient.clear() wipes ALL cached data (profile, feed, etc.)
+      // dispatch(clearUser()) resets Redux (kept for any Redux-dependent logic)
+      // Together they ensure zero stale data remains after logout
       dispatch(clearUser());
       queryClient.clear();
       toast.success("Logged out successfully");
@@ -72,18 +77,12 @@ export const useChangePasswordMutation = () => {
 
   return useMutation({
     mutationFn: changePassword,
-
     onSuccess: () => {
       toast.success("Password changed. Please login again.");
-
-      // Security cleanup
       dispatch(clearUser());
       queryClient.clear();
-
-      // Redirect
       navigate(ROUTES.LOGIN);
     },
-
     onError: (error) => {
       const message =
         error?.response?.data?.message || "Password change failed.";
@@ -99,21 +98,18 @@ export const useForgotPasswordMutation = () => {
       toast.success("Reset link sent! Check your inbox.");
     },
     onError: (error) => {
-      // WHY this matters?
-      // This is where cooldown error shows — backend throws
-      // "Reset email already sent. Please wait 1 minute..."
-      // That message comes through here automatically.
       const message =
         error?.response?.data?.message || "Something went wrong. Try again.";
       toast.error(message);
     },
   });
 };
+
 export const useResetPasswordMutation = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: (data) => resetPassword(data), // ✅ fixed
+    mutationFn: (data) => resetPassword(data),
     onSuccess: () => {
       toast.success("Password reset! Please sign in.");
       navigate(ROUTES.LOGIN);

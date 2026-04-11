@@ -1,5 +1,10 @@
 import { createSlice } from "@reduxjs/toolkit";
 
+// WHY keep Redux at all if React Query is the source of truth?
+// Redux is still useful for:
+// 1. Logout coordination (clearUser signals all Redux-dependent code)
+// 2. Future non-server state (theme, sidebar open/close, etc.)
+// 3. Any state that doesn't come from an API
 const initialState = {
   user: null,
 };

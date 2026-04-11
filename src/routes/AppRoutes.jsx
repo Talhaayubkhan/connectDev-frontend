@@ -1,8 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import AuthLayout from "../layouts/AuthLayout";
-import ProtectedRoute from "./ProtectedRoute";
-import GuestRoute from "./GuestRoute";
 import LoginPage from "../pages/auth/LoginPage";
 import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
@@ -13,33 +11,19 @@ import { ToastContainer } from "react-toastify";
 import ConnectionsPage from "../pages/connections/ConnectionsPage";
 import RequestPage from "../pages/connections/RequestPage";
 import UniqueProfile from "../pages/profile/UniqueProfile";
+import ProtectedRoute from "./ProtectedRoute";
+import PublicRoute from "./PublicRoute";
 
 // ── NEW: Split Chat into Layout + Window ──
 import ChatLayout from "../layouts/ChatLayout";
 import ChatWindow from "../pages/connections/Chat";
 
-// ─────────────────────────────────────────────────────────────
-//  ROUTE STRUCTURE CHANGE EXPLAINED:
-//
-//  BEFORE:
-//    /chat/:userId  →  <Chat />   (everything in one file)
-//
-//  AFTER:
-//    /chat          →  <ChatLayout />   ← sidebar lives here
-//    /chat/:userId  →  <ChatWindow />   ← renders inside Layout's <Outlet />
-//
-//  WHY nested routes?
-//  → /chat/:userId is a CHILD of /chat
-//  → React Router renders: ChatLayout renders ChatWindow inside its <Outlet />
-//  → Sidebar never unmounts when switching between conversations
-//  → Clean, no repeated code
-// ─────────────────────────────────────────────────────────────
-
 const AppRoutes = () => {
   return (
     <>
       <Routes>
-        <Route element={<GuestRoute />}>
+        {/* PUBLIC ROUTES (only when NOT logged in) */}
+        <Route element={<PublicRoute />}>
           <Route path="/auth" element={<AuthLayout />}>
             <Route path="login" element={<LoginPage />} />
             <Route path="forgot-password" element={<ForgotPasswordPage />} />
@@ -47,17 +31,15 @@ const AppRoutes = () => {
           </Route>
         </Route>
 
+        {/* PROTECTED ROUTES (only when logged in) */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<MainLayout />}>
-            <Route index element={<FeedPage />} />
+            <Route path="feed" element={<FeedPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="connections" element={<ConnectionsPage />} />
             <Route path="requests" element={<RequestPage />} />
             <Route path="profile/:userId" element={<UniqueProfile />} />
 
-            {/* ── CHAT ROUTES (nested) ── */}
-            {/* /chat         → ChatLayout (sidebar only, empty right panel) */}
-            {/* /chat/:userId → ChatLayout + ChatWindow inside Outlet         */}
             <Route path="chat" element={<ChatLayout />}>
               <Route path=":userId" element={<ChatWindow />} />
             </Route>

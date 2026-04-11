@@ -41,7 +41,7 @@ export const ROUTES = {
 };
 
 export const navLinks = [
-  { to: "/", label: "Feed" },
+  { to: "/feed", label: "Feed" },
   { to: "/connections", label: "Connections" },
   { to: "/requests", label: "Requests" },
 ];

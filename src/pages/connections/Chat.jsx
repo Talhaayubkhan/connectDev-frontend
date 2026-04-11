@@ -1,18 +1,17 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
 import { useEffect, useState, useRef } from "react";
 import { createSocketConnection } from "../../utils/socket";
 import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";
 import { IoIosArrowBack } from "react-icons/io";
 import { EVENTS, DEFAULT_AVATAR } from "../../utils/constants";
 import { useOrCreateChat } from "../../hooks/chats/useOrCreateChat";
+import { buildMessage } from "../../utils/chatHelpers";
 
-// ─────────────────────────────────────────────
-//  WHAT this component does:
-//  1. Loads old messages from DB via useOrCreateChat (REST)
-//  2. Connects socket for live send/receive
-//  3. Renders message bubbles + input box
-// ─────────────────────────────────────────────
+// WHY useShowProfile instead of useSelector:
+// Redux auth.user is null on refresh — we removed Redux as
+// the source of truth. useShowProfile reads from React Query
+// cache which is rehydrated from the server on every mount.
+import { useShowProfile } from "../../hooks/profile/useShowProfile";
 
 const ChatWindow = () => {
   const { userId: chatPartnerId } = useParams();
@@ -21,101 +20,92 @@ const ChatWindow = () => {
   const [messages, setMessages] = useState([]);
   const [messageInput, setMessageInput] = useState("");
 
-  // socketRef: holds socket instance without causing re-renders
   const socketRef = useRef(null);
-  // messagesEndRef: invisible div at bottom used for auto-scroll
   const messagesEndRef = useRef(null);
-  // chatIdRef: stores chatId once loaded, so socket JOIN has it
   const chatIdRef = useRef(null);
 
-  const currentUser = useSelector((store) => store?.auth?.user);
-  const currentUserId = currentUser?._id;
+  // WHY replace useSelector with useShowProfile:
+  // useSelector(store.auth.user) returns null on page refresh
+  // because Redux state resets. useShowProfile reads from
+  // React Query cache which survives via the server fetch.
+  const { data: currentUser } = useShowProfile();
+  const currentUserId = currentUser?._id || currentUser?.id;
 
-  // chatPartner profile (name, photo) from their userId
+  // WHY both _id and id:
+  // Your backend login response uses `id` (safeUser object).
+  // Your DB documents use `_id`. Depending on which endpoint
+  // populated the cache, either could be present.
+  // We normalise here so comparisons below always work.
+
   const {
     data: chatPartner,
     isLoading: partnerLoading,
     error: partnerError,
   } = useUniqueProfile(chatPartnerId);
 
-  // ── STEP 1: Load old messages from DB via REST ──
-  // WHY: Socket only handles NEW messages sent after page loads.
-  //      Old messages must come from DB on mount.
   const { data: chatData, isLoading: chatLoading } =
     useOrCreateChat(chatPartnerId);
 
-  // ── STEP 2: Seed state with old messages when chatData arrives ──
+  // ── STEP 1: Seed state with old messages from DB ──
   useEffect(() => {
     if (!chatData?.messages || !currentUserId) return;
 
     const loaded = [...chatData.messages]
-      .reverse() // DB returns newest first → reverse for oldest-first display
+      .reverse() // WHY reverse: DB returns newest-first, UI needs oldest-first
       .map((msg) => {
         const isMine = msg.sender?.toString() === currentUserId?.toString();
-        return {
+
+        return buildMessage({
           id: msg._id,
           text: msg.text,
           sender: isMine ? "me" : "other",
           senderName: isMine ? currentUser?.firstName : chatPartner?.firstName,
-          avatarUrl: isMine
-            ? currentUser?.photoURL
-            : chatPartner?.photoURL || DEFAULT_AVATAR,
-          time: new Date(msg.createdAt).toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
+          avatarUrl: isMine ? currentUser?.photoURL : chatPartner?.photoURL,
+          createdAt: msg.createdAt,
           status: isMine ? "sent" : undefined,
-        };
+        });
       });
 
     setMessages(loaded);
 
-    // Store chatId so socket JOIN can use it
     if (chatData?.chat?._id) {
       chatIdRef.current = chatData.chat._id;
     }
   }, [chatData, currentUserId]);
 
-  // ── STEP 3: Auto-scroll to bottom on new message ──
+  // ── STEP 2: Auto-scroll on new message ──
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  // ── STEP 4: Socket setup ──
-  // WHY separate from REST: REST loads history, socket handles live flow
+  // ── STEP 3: Socket setup ──
   useEffect(() => {
     if (!currentUserId || !chatPartnerId) return;
 
     const socket = createSocketConnection();
     socketRef.current = socket;
 
-    // Remove old listener first — prevents duplicate messages on re-render
+    // WHY off() before on():
+    // Without this, each re-render adds another listener.
+    // You would receive duplicate messages after navigation.
     socket.off(EVENTS.MESSAGE_RECEIVED);
 
     socket.on(EVENTS.MESSAGE_RECEIVED, ({ firstName, text, createdAt }) => {
       setMessages((prev) => [
         ...prev,
-        {
-          id: `${Date.now()}-${Math.random()}`,
+        buildMessage({
           text,
           sender: "other",
           senderName: firstName,
-          avatarUrl: chatPartner?.photoURL || DEFAULT_AVATAR,
-          time: createdAt
-            ? new Date(createdAt).toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })
-            : new Date().toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              }),
-        },
+          avatarUrl: chatPartner?.photoURL,
+          createdAt,
+        }),
       ]);
     });
 
-    // Join the socket room
-    // WHY send receiverId and not senderId? Backend gets YOUR id from JWT — never trust client for identity
+    // WHY only receiverId and not senderId:
+    // Backend derives YOUR identity from the JWT cookie.
+    // Never trust the client to identify itself — that can be spoofed.
     socket.emit(EVENTS.JOIN_CHAT, {
       receiverId: chatPartnerId,
       ...(chatIdRef.current && { chatId: chatIdRef.current }),
@@ -126,7 +116,7 @@ const ChatWindow = () => {
     };
   }, [currentUserId, chatPartnerId]);
 
-  // ── STEP 5: Send message ──
+  // ── STEP 4: Send message ──
   const handleSendMessage = () => {
     const trimmed = messageInput.trim();
     if (!trimmed || !socketRef.current) return;
@@ -137,21 +127,20 @@ const ChatWindow = () => {
       ...(chatIdRef.current && { chatId: chatIdRef.current }),
     });
 
-    // Optimistic update: show message instantly without waiting for server
+    // WHY optimistic update:
+    // We show the message immediately without waiting for server
+    // confirmation. This makes the UI feel instant.
+    // If the socket fails, the message stays visible but was
+    // never saved — a known trade-off in this architecture.
     setMessages((prev) => [
       ...prev,
-      {
-        id: `${Date.now()}-${Math.random()}`,
+      buildMessage({
         text: trimmed,
         sender: "me",
         senderName: currentUser?.firstName,
         avatarUrl: currentUser?.photoURL,
-        time: new Date().toLocaleTimeString([], {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
         status: "sent",
-      },
+      }),
     ]);
 
     setMessageInput("");
@@ -164,7 +153,6 @@ const ChatWindow = () => {
     }
   };
 
-  // ── LOADING STATE ──
   if (partnerLoading || chatLoading) {
     return (
       <div className="flex-1 flex justify-center items-center h-full">
@@ -173,7 +161,6 @@ const ChatWindow = () => {
     );
   }
 
-  // ── ERROR STATE ──
   if (partnerError) {
     return (
       <div className="flex-1 flex justify-center items-center flex-col gap-3 text-error">
@@ -189,7 +176,6 @@ const ChatWindow = () => {
     <div className="flex-1 flex flex-col h-full overflow-hidden">
       {/* ── HEADER ── */}
       <div className="px-4 py-3 border-b border-base-300 bg-base-200 flex items-center gap-3 shrink-0">
-        {/* Back button — visible on mobile */}
         <button
           className="btn btn-ghost btn-sm btn-circle md:hidden"
           onClick={() => navigate("/chat")}
@@ -198,8 +184,7 @@ const ChatWindow = () => {
           <IoIosArrowBack size={20} />
         </button>
 
-        {/* Avatar */}
-        <div className="avatar online">
+        <div className="avatar">
           <div className="w-10 h-10 rounded-full ring-2 ring-primary/30 overflow-hidden">
             <img
               src={chatPartner?.photoURL || DEFAULT_AVATAR}
@@ -209,11 +194,14 @@ const ChatWindow = () => {
           </div>
         </div>
 
-        {/* Name + status */}
         <div className="flex-1">
           <h2 className="font-semibold text-sm leading-tight text-base-content">
             {chatPartner?.firstName} {chatPartner?.lastName}
           </h2>
+          {/* WHY always show Online here:
+              The chat partner's real-time status would require
+              a presence socket event — not implemented yet.
+              This is a known placeholder. */}
           <p className="text-xs text-success">Online</p>
         </div>
       </div>
@@ -249,7 +237,6 @@ const ChatWindow = () => {
                 msg.sender === "me" ? "flex-row-reverse" : ""
               }`}
             >
-              {/* Avatar — only for received messages */}
               {msg.sender !== "me" && (
                 <div className="avatar shrink-0">
                   <div className="w-7 h-7 rounded-full overflow-hidden">
@@ -267,14 +254,12 @@ const ChatWindow = () => {
                   msg.sender === "me" ? "items-end" : "items-start"
                 }`}
               >
-                {/* Sender name — only for received */}
                 {msg.sender !== "me" && (
                   <span className="text-[10px] text-base-content/40 mb-1 px-1">
                     {msg.senderName}
                   </span>
                 )}
 
-                {/* Bubble */}
                 <div
                   className={`px-4 py-2 rounded-2xl text-sm shadow-sm ${
                     msg.sender === "me"
@@ -285,7 +270,6 @@ const ChatWindow = () => {
                   {msg.text}
                 </div>
 
-                {/* Time + status */}
                 <div className="text-[10px] mt-1 px-1 opacity-40 flex items-center gap-1">
                   {msg.time}
                   {msg.sender === "me" && msg.status && (
@@ -297,7 +281,6 @@ const ChatWindow = () => {
           </div>
         ))}
 
-        {/* Auto-scroll anchor */}
         <div ref={messagesEndRef} />
       </div>
 

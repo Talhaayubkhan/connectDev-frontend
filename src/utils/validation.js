@@ -14,7 +14,7 @@ const confirmPassword = (ref = "password") =>
     .oneOf([Yup.ref(ref)], "Passwords must match")
     .required("Please confirm your password");
 
-// Helper for optional URL fields (handles empty strings)
+// WHY: transforms "" to null so .url() doesn't reject an empty field
 const optionalUrl = Yup.string()
   .transform((value) => (value === "" ? null : value))
   .nullable()
@@ -28,19 +28,16 @@ export const registerSchema = Yup.object({
     .min(2, "First name must be at least 2 characters")
     .max(50, "First name cannot exceed 50 characters")
     .required("First name is required"),
-
   lastName: Yup.string()
     .trim()
     .min(2, "Last name must be at least 2 characters")
     .max(50, "Last name cannot exceed 50 characters")
     .nullable(),
-
   email: Yup.string()
     .trim()
     .lowercase()
     .email("Please enter a valid email address")
     .required("Email is required"),
-
   password: passwordRules,
   confirmPassword: confirmPassword("password"),
 });
@@ -67,10 +64,9 @@ export const resetPasswordSchema = Yup.object({
   confirmPassword: confirmPassword("newPassword"),
 });
 
-// ================= PROFILE SCHEMA (FIXED & COMPLETE) =================
+// ================= PROFILE SCHEMA =================
 
 export const editProfileSchema = Yup.object({
-  // Basic Info
   firstName: Yup.string()
     .trim()
     .min(2, "First name must be at least 2 characters")
@@ -83,40 +79,44 @@ export const editProfileSchema = Yup.object({
     .max(50, "Last name cannot exceed 50 characters")
     .required("Last name is required"),
 
-  // NEW: Email field (user can update email)
-  email: Yup.string()
-    .trim()
-    .lowercase()
-    .email("Please enter a valid email address")
-    .required("Email address is required"),
+  // WHY no email here:
+  // 1. Backend ALLOWED_FIELDS does not include email — it would be rejected
+  // 2. Email changes require their own verification flow (send link → confirm)
+  // 3. Schema must mirror backend exactly — no more, no less
 
-  // Age
+  // WHY transform on age:
+  // HTML number inputs send "" when empty, not undefined
+  // Yup.number() rejects "" with a typeError, blocking form submission silently
+  // transform converts "" → undefined, which .optional() accepts cleanly
   age: Yup.number()
+    .transform((value, original) => (original === "" ? undefined : value))
     .typeError("Age must be a number")
     .min(18, "You must be at least 18 years old")
-    .max(100, "Please enter a valid age (max 100)")
+    .max(100, "Please enter a valid age")
     .integer("Age must be a whole number")
-    .required("Age is required"),
+    .optional(),
 
-  // Gender
   gender: Yup.string()
     .oneOf(["male", "female", "other"], "Please select a valid gender option")
     .required("Gender is required"),
 
-  // Photo URL - FIXED: handles empty string
   photoURL: optionalUrl,
 
-  // About/Bio
   about: Yup.string()
     .trim()
     .max(300, "Bio cannot exceed 300 characters")
     .nullable(),
 
-  // add inside your editProfileSchema Yup object:
-  location: Yup.string().max(100, "Max 100 characters").optional(),
-  occupation: Yup.string().max(100, "Max 100 characters").optional(),
+  location: Yup.string()
+    .trim()
+    .max(100, "Location cannot exceed 100 characters")
+    .nullable(),
 
-  // Skills - UPDATED: max 15 to match backend, min 1 character
+  occupation: Yup.string()
+    .trim()
+    .max(100, "Occupation cannot exceed 100 characters")
+    .nullable(),
+
   skills: Yup.array()
     .of(
       Yup.string()
@@ -124,11 +124,10 @@ export const editProfileSchema = Yup.object({
         .min(1, "Skill cannot be empty")
         .max(30, "Skill name too long"),
     )
-    .max(15, "You can add up to 15 skills only") // Changed from 20 to 15
+    .max(15, "You can add up to 15 skills only")
     .test("no-duplicates", "Duplicate skills are not allowed", (arr) => {
       if (!arr || arr.length === 0) return true;
-      const uniqueSkills = new Set(arr);
-      return uniqueSkills.size === arr.length;
+      return new Set(arr).size === arr.length;
     })
     .nullable(),
 });
@@ -143,9 +142,9 @@ export const forgotPasswordSchema = Yup.object({
     .required("Email address is required"),
 });
 
-// ================= OPTIONAL: EXPORT ALL SCHEMAS =================
+// ================= EXPORT ALL =================
 
-const validationSchemas = {
+export default {
   registerSchema,
   loginSchema,
   changePasswordSchema,
@@ -153,5 +152,3 @@ const validationSchemas = {
   editProfileSchema,
   forgotPasswordSchema,
 };
-
-export default validationSchemas;

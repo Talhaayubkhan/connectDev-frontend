@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom"; // ← add Navigate
 import MainLayout from "../layouts/MainLayout";
 import AuthLayout from "../layouts/AuthLayout";
 import LoginPage from "../pages/auth/LoginPage";
@@ -13,8 +13,6 @@ import RequestPage from "../pages/connections/RequestPage";
 import UniqueProfile from "../pages/profile/UniqueProfile";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
-
-// ── NEW: Split Chat into Layout + Window ──
 import ChatLayout from "../layouts/ChatLayout";
 import ChatWindow from "../pages/connections/Chat";
 
@@ -22,7 +20,7 @@ const AppRoutes = () => {
   return (
     <>
       <Routes>
-        {/* PUBLIC ROUTES (only when NOT logged in) */}
+        {/* PUBLIC ROUTES */}
         <Route element={<PublicRoute />}>
           <Route path="/auth" element={<AuthLayout />}>
             <Route path="login" element={<LoginPage />} />
@@ -31,9 +29,10 @@ const AppRoutes = () => {
           </Route>
         </Route>
 
-        {/* PROTECTED ROUTES (only when logged in) */}
+        {/* PROTECTED ROUTES */}
         <Route element={<ProtectedRoute />}>
           <Route path="/" element={<MainLayout />}>
+            <Route index element={<Navigate to="/feed" replace />} />
             <Route path="feed" element={<FeedPage />} />
             <Route path="profile" element={<ProfilePage />} />
             <Route path="connections" element={<ConnectionsPage />} />

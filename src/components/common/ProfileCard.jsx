@@ -1,3 +1,4 @@
+// ProfileCard.jsx - Keep EXACTLY as you had it, no changes
 import { FiMapPin, FiBriefcase } from "react-icons/fi";
 import { DEFAULT_AVATAR } from "../../utils/constants";
 

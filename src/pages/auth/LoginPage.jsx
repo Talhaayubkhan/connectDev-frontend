@@ -79,9 +79,9 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-base-200 to-base-100 flex flex-col lg:flex-row">
+    <div className="h-screen overflow-hidden bg-gradient-to-br from-base-200 to-base-100 flex flex-col lg:flex-row">
       {/* Mobile Banner - Simplified */}
-      <div className="lg:hidden w-full bg-primary text-white p-4 shadow-md">
+      <div className="lg:hidden w-full bg-primary text-white p-4 shadow-md flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-white/20">
             <FiUser className="w-4 h-4" />
@@ -154,8 +154,8 @@ const LoginPage = () => {
         </div>
       </div>
 
-      {/* RIGHT SIDE - Form Section */}
-      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      {/* RIGHT SIDE - Form Section - Fixed height, no scroll */}
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8 overflow-hidden">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -164,7 +164,7 @@ const LoginPage = () => {
         >
           <div className="bg-base-100 rounded-2xl shadow-xl p-6 sm:p-8">
             {/* Header */}
-            <div className="text-center space-y-2 mb-6">
+            <div className="text-center space-y-2 mb-5">
               <h2 className="text-2xl font-bold">
                 {isLogin ? "Welcome Back" : "Create Account"}
               </h2>
@@ -175,8 +175,8 @@ const LoginPage = () => {
               </p>
             </div>
 
-            {/* Toggle Buttons - Better Accessibility */}
-            <div className="flex gap-2 bg-base-200 rounded-lg p-1 mb-6">
+            {/* Toggle Buttons */}
+            <div className="flex gap-2 bg-base-200 rounded-lg p-1 mb-5">
               {["Login", "Register"].map((tab, idx) => {
                 const isActive =
                   (idx === 0 && isLogin) || (idx === 1 && !isLogin);
@@ -184,7 +184,7 @@ const LoginPage = () => {
                   <button
                     key={tab}
                     onClick={() => setIsLogin(idx === 0)}
-                    className={`flex-1 py-2.5 text-sm font-medium rounded-md transition-all duration-200 ${
+                    className={`flex-1 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
                       isActive
                         ? "bg-base-100 shadow-sm text-primary"
                         : "text-base-content/60 hover:text-base-content"
@@ -206,16 +206,16 @@ const LoginPage = () => {
               validateOnBlur={true}
             >
               {({ errors, touched, isSubmitting }) => (
-                <Form className="space-y-4">
+                <Form className="space-y-3">
                   {/* Name Fields - Register only */}
-                  <AnimatePresence>
+                  <AnimatePresence mode="wait">
                     {!isLogin && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="space-y-3"
+                        className="space-y-3 overflow-hidden"
                       >
                         <div className="flex gap-3">
                           <div className="flex-1">
@@ -232,7 +232,9 @@ const LoginPage = () => {
                                   placeholder="John"
                                   onFocus={() => setActiveField("firstName")}
                                   onBlur={() => setActiveField(null)}
-                                  className={`${getInputClassName("firstName")} ${
+                                  className={`${getInputClassName(
+                                    "firstName",
+                                  )} ${
                                     errors.firstName && touched.firstName
                                       ? "input-error"
                                       : ""
@@ -352,13 +354,14 @@ const LoginPage = () => {
                   </div>
 
                   {/* Confirm Password - Register only */}
-                  <AnimatePresence>
+                  <AnimatePresence mode="wait">
                     {!isLogin && (
                       <motion.div
                         initial={{ opacity: 0, height: 0 }}
                         animate={{ opacity: 1, height: "auto" }}
                         exit={{ opacity: 0, height: 0 }}
                         transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
                       >
                         <label className="label py-0 pb-1">
                           <span className="label-text text-xs">
@@ -402,7 +405,7 @@ const LoginPage = () => {
                   <button
                     type="submit"
                     disabled={isPending || isSubmitting}
-                    className="btn btn-primary w-full mt-2"
+                    className="btn btn-primary w-full mt-3"
                   >
                     {isPending || isSubmitting ? (
                       <>
@@ -420,11 +423,11 @@ const LoginPage = () => {
             </Formik>
 
             {/* Divider */}
-            <div className="divider text-xs text-base-content/40 my-6">OR</div>
+            <div className="divider text-xs text-base-content/40 my-5">OR</div>
           </div>
 
           {/* Footer */}
-          <p className="text-center text-xs text-base-content/40 mt-6">
+          <p className="text-center text-xs text-base-content/40 mt-5">
             By continuing, you agree to our{" "}
             <Link to="/terms" className="text-primary hover:underline">
               Terms of Service

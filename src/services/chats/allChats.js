@@ -22,3 +22,9 @@ export const fetchMessages = async (chatId, page = 1, limit = 20) => {
   );
   return response?.data?.data;
 };
+
+export const fetchAiChat = async (messages) => {
+  const response = await apiClient.post(`chats/ai`, { messages });
+  console.log(response?.data?.data);
+  return response?.data?.data;
+};

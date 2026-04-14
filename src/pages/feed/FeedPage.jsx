@@ -7,8 +7,11 @@ import { useState } from "react";
 import ProfileCard from "../../components/common/ProfileCard";
 import { HiUserGroup } from "react-icons/hi";
 import ErrorPage from "../../components/common/ErrorPage";
+import { FaPhone, FaWhatsapp } from "react-icons/fa";
+import ChatPopUp from "./ChatPopUp";
 
 const FeedPage = () => {
+  const [isWhatsAppConnect, setIsWhatsAppConnect] = useState(false);
   const { data, isLoading, error } = useFeedQuery();
   const users = data?.users || [];
 
@@ -56,20 +59,43 @@ const FeedPage = () => {
     );
   };
 
+  const handleWhatsAppConnect = () => {
+    setIsWhatsAppConnect(true);
+  };
+
   return (
     <>
-      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
-        <p className="text-sm text-base-content/50">
-          {users.length} {users.length === 1 ? "profile" : "profiles"} remaining
-        </p>
-        <ProfileCard
-          profile={currentProfile}
-          showActions={true}
-          pendingAction={pendingAction}
-          onAccept={(id, name) => handleAction(id, name, "interested")}
-          onReject={(id, name) => handleAction(id, name, "ignored")}
-        />
+      <div>
+        <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+          <p className="text-sm text-base-content/50">
+            {users.length} {users.length === 1 ? "profile" : "profiles"}{" "}
+            remaining
+          </p>
+          <ProfileCard
+            profile={currentProfile}
+            showActions={true}
+            pendingAction={pendingAction}
+            onAccept={(id, name) => handleAction(id, name, "interested")}
+            onReject={(id, name) => handleAction(id, name, "ignored")}
+          />
+        </div>
+
+        <div className="flex items-center justify-end gap-4 px-10 cursor-pointer">
+          <button
+            className="btn btn-primary btn-outline"
+            onClick={handleWhatsAppConnect}
+          >
+            <FaWhatsapp size={20} />
+            <span className="text-sm">Connect on WhatsApp</span>
+          </button>
+          {/* ❌ ChatPopup is NO LONGER here */}
+        </div>
       </div>
+
+      {/* ✅ ChatPopup is here — sibling of everything, at root level */}
+      {isWhatsAppConnect && (
+        <ChatPopUp onClose={() => setIsWhatsAppConnect(false)} />
+      )}
     </>
   );
 };

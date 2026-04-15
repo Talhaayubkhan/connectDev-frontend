@@ -267,15 +267,6 @@ const RequestsPage = () => {
             />
           ))}
         </div>
-
-        {/* Tip Section */}
-        <div className="mt-8 p-4 bg-base-200 rounded-lg">
-          <p className="text-xs text-base-content/60 text-center">
-            💡 Tip: Accepting requests helps you build your professional
-            network. You can message your connections directly from the
-            connections page.
-          </p>
-        </div>
       </div>
     </div>
   );

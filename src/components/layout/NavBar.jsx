@@ -11,83 +11,21 @@ import { AnimatePresence } from "framer-motion";
 import { TbLogout } from "react-icons/tb";
 import { HiCode } from "react-icons/hi";
 import { FiUser, FiMenu, FiX, FiClock, FiWifi } from "react-icons/fi";
-
 import { useShowProfile } from "../../hooks/profile/useShowProfile";
 
 const NavBar = () => {
   const [showLogoutPopup, setShowLogoutPopup] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  // WHY useShowProfile here:
-  // ProtectedRoute already called this. React Query returns
-  // the cached result — zero extra API calls made.
   const { data: user } = useShowProfile();
-
   const location = useLocation();
   const logoutMutation = useLogoutMutation();
 
   const isActive = (path) => location.pathname === path;
 
-  // WHY a separate helper:
-  // We use this in both desktop dropdown and mobile menu.
-  // One place to change if the design updates later.
-  const UserInfoBlock = () => (
-    <div className="flex items-center gap-3 px-3 py-3">
-      <div className="relative shrink-0">
-        <div className="w-10 h-10 rounded-full overflow-hidden ring-2 ring-primary/30">
-          <img
-            src={user?.photoURL || DEFAULT_AVATAR}
-            alt={user?.firstName || "avatar"}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.currentTarget.src = DEFAULT_AVATAR;
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="flex flex-col min-w-0 gap-0.5">
-        {/* Name with icon */}
-        <div className="flex items-center gap-1.5">
-          <FiUser size={11} className="text-base-content/40 shrink-0" />
-          <span className="font-semibold text-sm text-base-content leading-tight">
-            {user?.firstName} {user?.lastName}
-          </span>
-        </div>
-
-        {/* Email — no icon as you didn't select it, kept subtle */}
-        <span className="text-xs text-base-content/50 truncate max-w-[160px] pl-4">
-          {user?.email}
-        </span>
-
-        {/* Online / Last seen with icon */}
-        {/* WHY conditional icon:
-          FiWifi = actively online right now
-          FiClock = was online X time ago
-          The icon reinforces the meaning of the text at a glance */}
-        <div className="flex items-center gap-1.5 mt-0.5">
-          {user?.isActive ? (
-            <>
-              <FiWifi size={11} className="text-success shrink-0" />
-              <span className="text-xs font-medium text-success">Online</span>
-            </>
-          ) : (
-            <>
-              <FiClock size={11} className="text-base-content/40 shrink-0" />
-              <span className="text-xs font-medium text-base-content/40">
-                {formatLastSeen(user?.lastSeen)}
-              </span>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <>
       <div className="navbar bg-base-300 shadow-sm px-4 z-40 relative">
-        {/* ── Brand ── */}
+        {/* Brand */}
         <div className="flex-1">
           <Link to="/feed" className="btn btn-ghost text-lg font-bold gap-2">
             <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
@@ -97,14 +35,13 @@ const NavBar = () => {
           </Link>
         </div>
 
-        {/* ── Desktop nav links ── */}
+        {/* Desktop nav links */}
         <div className="hidden md:flex items-center gap-1 mr-2">
           {navLinks.map(({ to, label }) => (
             <Link
               key={to}
               to={to}
-              className={`
-                relative px-3 py-2 rounded-lg text-sm font-medium transition-colors
+              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors
                 ${
                   isActive(to)
                     ? "text-primary bg-primary/10"
@@ -113,19 +50,11 @@ const NavBar = () => {
               `}
             >
               {label}
-
-              {/* WHY this underline bar:
-                  A bottom border on the active link gives a clear
-                  visual anchor without being heavy or distracting.
-                  It works on top of the background tint. */}
-              {isActive(to) && (
-                <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-primary" />
-              )}
             </Link>
           ))}
         </div>
 
-        {/* ── Desktop avatar + dropdown ── */}
+        {/* Desktop user menu */}
         <div className="flex items-center gap-2">
           <div className="dropdown dropdown-end hidden md:block">
             <div
@@ -145,34 +74,58 @@ const NavBar = () => {
               </div>
             </div>
 
-            {/* WHY w-64:
-                Slightly wider than before (was w-60) so the email
-                doesn't truncate too aggressively on longer addresses. */}
-            <ul className="menu menu-sm dropdown-content bg-base-100 rounded-xl z-50 mt-3 w-64 p-0 shadow-lg border border-base-200 overflow-hidden">
-              {/* User info block — separated visually from nav items */}
-              {user?.firstName && (
-                <li className="bg-base-200/60 pointer-events-none">
-                  <UserInfoBlock />
-                </li>
-              )}
+            <ul className="menu menu-sm dropdown-content bg-base-100 rounded-lg z-50 mt-3 w-56 p-2 shadow-md border border-base-200">
+              {/* User info */}
+              <li className="mb-2 pb-2 border-b border-base-200">
+                <div className="flex items-center gap-3 px-2 py-1">
+                  <div className="w-9 h-9 rounded-full overflow-hidden bg-base-300">
+                    <img
+                      src={user?.photoURL || DEFAULT_AVATAR}
+                      alt={user?.firstName || "avatar"}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = DEFAULT_AVATAR;
+                      }}
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm">
+                      {user?.firstName} {user?.lastName}
+                    </span>
+                    <span className="text-xs text-base-content/50 truncate max-w-[140px]">
+                      {user?.email}
+                    </span>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      {user?.isActive ? (
+                        <>
+                          <FiWifi size={10} className="text-success" />
+                          <span className="text-xs text-success">Online</span>
+                        </>
+                      ) : (
+                        <>
+                          <FiClock size={10} className="text-base-content/40" />
+                          <span className="text-xs text-base-content/40">
+                            {formatLastSeen(user?.lastSeen)}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </li>
 
-              <div className="divider my-0 h-px" />
-
-              <li className="px-1 py-0.5">
-                <Link
-                  to="/profile"
-                  className="flex items-center gap-2 rounded-lg text-sm py-2"
-                >
+              <li>
+                <Link to="/profile" className="flex items-center gap-2">
                   <FiUser size={14} />
                   Profile
                 </Link>
               </li>
 
-              <li className="px-1 py-0.5 pb-1.5">
+              <li>
                 <button
                   onClick={() => setShowLogoutPopup(true)}
                   disabled={logoutMutation.isPending}
-                  className="flex items-center gap-2 rounded-lg text-sm py-2 text-error hover:bg-error/10 w-full"
+                  className="flex items-center gap-2 text-error hover:bg-error/10 w-full"
                 >
                   <TbLogout size={15} />
                   {logoutMutation.isPending ? "Logging out..." : "Logout"}
@@ -181,15 +134,8 @@ const NavBar = () => {
             </ul>
           </div>
 
-          {/* ── Mobile: avatar + hamburger ── */}
+          {/* Mobile menu button */}
           <div className="flex items-center gap-2 md:hidden">
-            <div className="w-8 h-8 rounded-full overflow-hidden ring-2 ring-primary ring-offset-1 ring-offset-base-300">
-              <img
-                src={user?.photoURL || DEFAULT_AVATAR}
-                alt={user?.firstName || "avatar"}
-                className="w-full h-full object-cover"
-              />
-            </div>
             <button
               className="btn btn-ghost btn-circle btn-sm"
               onClick={() => setMobileMenuOpen(true)}
@@ -200,47 +146,66 @@ const NavBar = () => {
         </div>
       </div>
 
-      {/* ── Mobile drawer ── */}
+      {/* Mobile drawer - simplified */}
       {mobileMenuOpen && (
         <>
-          {/* Backdrop */}
           <div
             className="fixed inset-0 bg-black/50 z-50 md:hidden"
             onClick={() => setMobileMenuOpen(false)}
           />
 
-          <div className="fixed top-0 right-0 h-full w-72 bg-base-100 z-50 shadow-xl md:hidden flex flex-col">
-            {/* Drawer header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-base-200">
-              <span className="font-bold text-sm">Menu</span>
+          <div className="fixed top-0 right-0 h-full w-64 bg-base-100 z-50 shadow-lg md:hidden flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-base-200">
+              <span className="font-semibold text-sm">Menu</span>
               <button
-                className="btn btn-ghost btn-circle btn-sm"
+                className="btn btn-ghost btn-sm btn-circle"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 <FiX size={18} />
               </button>
             </div>
 
-            {/* User info — same component as dropdown */}
-            {user?.firstName && (
-              <div className="bg-base-200/50 border-b border-base-200">
-                <UserInfoBlock />
+            {/* User info */}
+            <div className="p-4 border-b border-base-200 bg-base-200/30">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full overflow-hidden">
+                  <img
+                    src={user?.photoURL || DEFAULT_AVATAR}
+                    alt="avatar"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div>
+                  <p className="font-medium text-sm">
+                    {user?.firstName} {user?.lastName}
+                  </p>
+                  <p className="text-xs text-base-content/50 truncate w-36">
+                    {user?.email}
+                  </p>
+                  {user?.isActive ? (
+                    <span className="text-xs text-success">Online</span>
+                  ) : (
+                    <span className="text-xs text-base-content/40">
+                      {formatLastSeen(user?.lastSeen)}
+                    </span>
+                  )}
+                </div>
               </div>
-            )}
+            </div>
 
             {/* Nav links */}
-            <div className="flex-1 py-2 overflow-y-auto">
+            <div className="flex-1 py-2">
               {navLinks.map(({ to, label }) => (
                 <Link
                   key={to}
                   to={to}
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`
-                    flex items-center px-5 py-3 text-sm font-medium transition-colors
+                  className={`flex items-center px-4 py-3 text-sm transition-colors
                     ${
                       isActive(to)
-                        ? "bg-primary/10 text-primary border-r-2 border-primary"
-                        : "text-base-content/70 hover:bg-base-200 hover:text-base-content"
+                        ? "bg-primary/10 text-primary font-medium"
+                        : "text-base-content/70 hover:bg-base-200"
                     }
                   `}
                 >
@@ -248,24 +213,18 @@ const NavBar = () => {
                 </Link>
               ))}
 
-              {/* WHY border-r-2 on active mobile link:
-                  On desktop we use a bottom underline.
-                  On mobile the links are stacked vertically so a
-                  right border makes more visual sense — it reads
-                  as a sidebar-style active indicator. */}
               <Link
                 to="/profile"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`
-                  flex items-center gap-2 px-5 py-3 text-sm font-medium transition-colors
+                className={`flex items-center px-4 py-3 text-sm transition-colors
                   ${
                     isActive("/profile")
-                      ? "bg-primary/10 text-primary border-r-2 border-primary"
-                      : "text-base-content/70 hover:bg-base-200 hover:text-base-content"
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-base-content/70 hover:bg-base-200"
                   }
                 `}
               >
-                <FiUser size={15} />
+                <FiUser size={14} className="mr-2" />
                 Profile
               </Link>
             </div>
@@ -277,9 +236,9 @@ const NavBar = () => {
                   setMobileMenuOpen(false);
                   setShowLogoutPopup(true);
                 }}
-                className="flex items-center gap-2 text-error w-full px-4 py-2.5 text-sm font-medium hover:bg-error/10 rounded-lg transition-colors"
+                className="flex items-center gap-2 text-error w-full px-3 py-2 text-sm hover:bg-error/10 rounded-md transition-colors"
               >
-                <TbLogout size={16} />
+                <TbLogout size={15} />
                 Logout
               </button>
             </div>

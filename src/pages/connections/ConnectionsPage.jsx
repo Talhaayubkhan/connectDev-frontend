@@ -64,8 +64,8 @@
 // };
 
 // export default ConnectionsPage;
-
 import { HiUserGroup, HiUserAdd, HiSearch } from "react-icons/hi";
+import { Link } from "react-router-dom";
 import { useConnections } from "../../hooks/connections/useConnections";
 import UserCard from "../../components/common/UserCard";
 import ErrorPage from "../../components/common/ErrorPage";
@@ -75,21 +75,17 @@ import { useSelector } from "react-redux";
 const ConnectionsPage = () => {
   const { data: connections, isLoading, error } = useConnections();
   const [searchTerm, setSearchTerm] = useState("");
-
   const currentUser = useSelector((state) => state?.auth?.user);
 
-  // Filter connections based on search
   const filteredConnections = connections?.filter((connection) => {
     const user = connection;
     const fullName =
       `${user?.firstName || ""} ${user?.lastName || ""}`.toLowerCase();
     const skills = user?.skills?.join(" ").toLowerCase() || "";
     const search = searchTerm.toLowerCase();
-
     return fullName.includes(search) || skills.includes(search);
   });
 
-  // Loading State
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -101,7 +97,6 @@ const ConnectionsPage = () => {
     );
   }
 
-  // Error State
   if (error) {
     return (
       <ErrorPage
@@ -112,7 +107,6 @@ const ConnectionsPage = () => {
     );
   }
 
-  // Empty State
   if (!connections?.length) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center px-4">
@@ -138,31 +132,29 @@ const ConnectionsPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-base-200 to-base-100">
-      <div className="max-w-4xl mx-auto py-6 md:py-10 px-4">
-        {/* Header Section */}
-        <div className="mb-6 md:mb-8">
+    <div className="min-h-screen bg-base-200 py-6 md:py-10 px-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Header */}
+        <div className="mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-2xl md:text-3xl font-bold text-base-content">
-                My Connections
+                Connections
               </h1>
-              <p className="text-sm text-base-content/60 mt-1">
-                People you've connected with
+              <p className="text-sm text-base-content/50 mt-1">
+                {connections.length} people you've connected with
               </p>
             </div>
 
-            <div className="flex items-center gap-3">
-              <div className="badge badge-primary badge-lg gap-1">
-                <HiUserGroup size={14} />
-                {connections.length}{" "}
-                {connections.length === 1 ? "Connection" : "Connections"}
-              </div>
+            <div className="badge badge-primary badge-lg gap-1 px-4 py-3">
+              <HiUserGroup size={14} />
+              {connections.length}{" "}
+              {connections.length === 1 ? "Connection" : "Connections"}
             </div>
           </div>
 
-          {/* Search Bar */}
-          <div className="mt-4">
+          {/* Search */}
+          <div className="mt-5">
             <div className="relative">
               <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-base-content/40 text-sm" />
               <input
@@ -170,56 +162,47 @@ const ConnectionsPage = () => {
                 placeholder="Search by name or skill..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="input input-bordered w-full pl-9 pr-4"
+                className="input input-bordered w-full pl-9 py-2"
               />
             </div>
           </div>
         </div>
 
-        {/* Stats Summary */}
+        {/* Stats - simplified */}
         {filteredConnections?.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-            <div className="bg-base-100 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold text-primary">
+          <div className="grid grid-cols-3 gap-3 mb-6">
+            <div className="bg-base-100 rounded-lg p-3 text-center shadow-sm">
+              <p className="text-xl font-bold text-primary">
                 {filteredConnections.length}
               </p>
-              <p className="text-xs text-base-content/60">Active</p>
+              <p className="text-xs text-base-content/50">Showing</p>
             </div>
-            <div className="bg-base-100 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold">
+            <div className="bg-base-100 rounded-lg p-3 text-center shadow-sm">
+              <p className="text-xl font-bold">
                 {
                   filteredConnections.filter((c) => c?.skills?.length > 0)
                     .length
                 }
               </p>
-              <p className="text-xs text-base-content/60">With Skills</p>
+              <p className="text-xs text-base-content/50">With skills</p>
             </div>
-            <div className="bg-base-100 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold">
-                {
-                  filteredConnections.filter(
-                    (c) => c?.age >= 25 && c?.age <= 35,
-                  ).length
-                }
-              </p>
-              <p className="text-xs text-base-content/60">Age 25-35</p>
-            </div>
-            <div className="bg-base-100 rounded-lg p-3 text-center">
-              <p className="text-2xl font-bold">
-                {currentUser?.isActive ? (
-                  <span className="text-green-500">●</span>
-                ) : (
-                  <span className="text-red-500">●</span>
-                )}
-              </p>
-              <p className="text-xs text-base-content/60">Online Now</p>
+            <div className="bg-base-100 rounded-lg p-3 text-center shadow-sm">
+              <div className="flex items-center justify-center gap-1">
+                <div
+                  className={`w-2 h-2 rounded-full ${currentUser?.isActive ? "bg-success" : "bg-error"}`}
+                />
+                <p className="text-xl font-bold">
+                  {currentUser?.isActive ? "Online" : "Offline"}
+                </p>
+              </div>
+              <p className="text-xs text-base-content/50">Your status</p>
             </div>
           </div>
         )}
 
         {/* Connections List */}
         {filteredConnections?.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {filteredConnections.map((connection) => (
               <UserCard
                 key={connection._id}
@@ -229,9 +212,9 @@ const ConnectionsPage = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <p className="text-base-content/60">
-              No connections found matching "{searchTerm}"
+          <div className="text-center py-12 bg-base-100 rounded-lg">
+            <p className="text-base-content/50">
+              No connections found for "{searchTerm}"
             </p>
           </div>
         )}

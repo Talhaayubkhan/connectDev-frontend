@@ -30,7 +30,7 @@ export const useConnectionRequests = () => {
     queryFn: async () => {
       try {
         const res = await getAllReceivedConnections();
-        return res?.data || [];
+        return res || [];
       } catch (err) {
         if (err?.response?.status === 404) return [];
         throw err;

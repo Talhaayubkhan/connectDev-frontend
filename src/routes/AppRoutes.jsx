@@ -13,8 +13,6 @@ import RequestPage from "../pages/connections/RequestPage";
 import UniqueProfile from "../pages/profile/UniqueProfile";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
-import ChatLayout from "../layouts/ChatLayout";
-import ChatWindow from "../pages/connections/Chat";
 
 const AppRoutes = () => {
   return (
@@ -38,10 +36,6 @@ const AppRoutes = () => {
             <Route path="connections" element={<ConnectionsPage />} />
             <Route path="requests" element={<RequestPage />} />
             <Route path="profile/:userId" element={<UniqueProfile />} />
-
-            <Route path="chat" element={<ChatLayout />}>
-              <Route path=":userId" element={<ChatWindow />} />
-            </Route>
           </Route>
         </Route>
 

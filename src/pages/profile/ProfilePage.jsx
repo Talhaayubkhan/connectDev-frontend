@@ -10,7 +10,7 @@ import {
   FiX,
   FiPlus,
   FiLock,
-  FiMapPin,
+  FiMapPin,w
   FiBriefcase,
   FiSave,
 } from "react-icons/fi";

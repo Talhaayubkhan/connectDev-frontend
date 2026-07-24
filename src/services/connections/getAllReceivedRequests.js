@@ -12,5 +12,6 @@ export const reviewRequest = async ({ status, requestId }) => {
     `request/review/${status}/${requestId}`,
     {},
   );
+  console.log("Requesst Data", response?.data);
   return response.data;
 };

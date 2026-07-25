@@ -28,22 +28,12 @@ export const useLoginMutation = () => {
       queryClient.setQueryData(["profile"], user);
       navigate("/feed", { replace: true });
     },
-    onError: (error) => {
-      const message =
-        error?.response?.data?.message || "Login failed. Try again.";
-      toast.error(message);
-    },
   });
 };
 
 export const useSignupMutation = () => {
   return useMutation({
     mutationFn: registerUser,
-    onError: (error) => {
-      const message =
-        error?.response?.data?.message || "Register failed. Try again.";
-      toast.error(message);
-    },
   });
 };
 

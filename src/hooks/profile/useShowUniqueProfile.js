@@ -1,9 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { getUniqueProfile } from "../../services/profile/uniqueProfile";
+import { QUERY_KEYS } from "../../utils/constants";
 
 export const useUniqueProfile = (userId) => {
   return useQuery({
-    queryKey: ["profile", "unique", userId],
+    queryKey: [...QUERY_KEYS.profile, "unique", userId],
     queryFn: () => getUniqueProfile(userId),
 
     enabled: !!userId && typeof userId === "string",

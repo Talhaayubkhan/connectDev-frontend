@@ -1,4 +1,3 @@
-// ProfileCard.jsx - Keep EXACTLY as you had it, no changes
 import { FiMapPin, FiBriefcase } from "react-icons/fi";
 import { DEFAULT_AVATAR } from "../../utils/constants";
 
@@ -25,12 +24,11 @@ const ProfileCard = ({
   const isBusy = pendingAction !== null;
 
   return (
-    <div className="card w-full max-w-sm bg-base-300 shadow-2xl overflow-hidden">
-      {/* ── Photo + name overlay ── */}
+    <article className="card w-full max-w-sm bg-base-300 shadow-2xl overflow-hidden">
       <figure className={`relative ${showActions ? "h-80" : "h-56"}`}>
         <img
           src={photoURL || DEFAULT_AVATAR}
-          alt="profile"
+          alt={`${firstName || "Developer"}'s profile`}
           className="w-full h-full object-cover"
           onError={(e) => {
             e.currentTarget.src = DEFAULT_AVATAR;
@@ -48,9 +46,7 @@ const ProfileCard = ({
         </div>
       </figure>
 
-      {/* ── Card body ── */}
       <div className="card-body p-4 gap-3">
-        {/* About */}
         {about ? (
           <p className="text-sm text-base-content/60 leading-relaxed">
             {about}
@@ -59,7 +55,6 @@ const ProfileCard = ({
           <p className="text-xs text-base-content/30 italic">No bio yet...</p>
         )}
 
-        {/* Location & Occupation — icon rows */}
         {(location || occupation) && (
           <div className="flex flex-col gap-1.5 mt-0.5">
             {location && (
@@ -77,7 +72,6 @@ const ProfileCard = ({
           </div>
         )}
 
-        {/* Placeholder rows when in preview mode and fields are empty */}
         {!showActions && !location && (
           <div className="flex items-center gap-1.5 text-xs text-base-content/25 italic">
             <FiMapPin size={12} className="shrink-0" />
@@ -91,12 +85,11 @@ const ProfileCard = ({
           </div>
         )}
 
-        {/* Skills */}
         {skills?.length > 0 && (
           <div className="flex flex-wrap gap-1.5 pt-0.5">
-            {skills.map((skill, i) => (
+            {skills.map((skill) => (
               <span
-                key={i}
+                key={skill}
                 className="badge badge-primary badge-outline badge-sm"
               >
                 {skill}
@@ -111,7 +104,6 @@ const ProfileCard = ({
           </p>
         )}
 
-        {/* ── Actions: feed mode only ── */}
         {showActions && (
           <div className="flex gap-3 justify-center pt-2">
             <button
@@ -120,7 +112,11 @@ const ProfileCard = ({
               onClick={() => onReject(_id, firstName)}
             >
               {pendingAction === "ignored" ? (
-                <span className="loading loading-spinner loading-sm" />
+                <span
+                  role="status"
+                  aria-label="Skipping profile"
+                  className="loading loading-spinner loading-sm"
+                />
               ) : (
                 "Ignore"
               )}
@@ -132,7 +128,11 @@ const ProfileCard = ({
               onClick={() => onAccept(_id, firstName)}
             >
               {pendingAction === "interested" ? (
-                <span className="loading loading-spinner loading-sm" />
+                <span
+                  role="status"
+                  aria-label="Sending connection request"
+                  className="loading loading-spinner loading-sm"
+                />
               ) : (
                 "Connect"
               )}
@@ -140,7 +140,7 @@ const ProfileCard = ({
           </div>
         )}
       </div>
-    </div>
+    </article>
   );
 };
 

@@ -1,193 +1,145 @@
-// import { Formik, Form } from "formik";
-// import { FiLock, FiX } from "react-icons/fi";
-// import { motion } from "framer-motion";
-// import { confirmPasswordSchema } from "../../utils/validation";
-// import PasswordInput from "../../components/common/PasswordInput";
-// import { useChangePasswordMutation } from "../../hooks/auth/useAuthMutation";
-// import { toast } from "react-toastify";
-
-// const Motion = motion;
-
-// const ProfilePasswordChange = ({ isOpen, onClose }) => {
-//   const passwordMutation = useChangePasswordMutation();
-
-//   const initialValues = {
-//     currentPassword: "",
-//     newPassword: "",
-//     confirmPassword: "",
-//   };
-
-//   const handleConfirmPassword = (values) => {
-//     const { currentPassword, newPassword } = values;
-//     passwordMutation.mutate({ currentPassword, newPassword });
-//   };
-
-//   if (!isOpen) return null;
-
-//   return (
-//     <Motion.div
-//       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
-//       initial={{ opacity: 0 }}
-//       animate={{ opacity: 1 }}
-//       exit={{ opacity: 0 }}
-//       transition={{ duration: 0.2 }}
-//       onClick={onClose}
-//     >
-//       <Motion.div
-//         className="bg-base-100 rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-5"
-//         initial={{ opacity: 0, scale: 0.95, y: 16 }}
-//         animate={{ opacity: 1, scale: 1, y: 0 }}
-//         exit={{ opacity: 0, scale: 0.95, y: 16 }}
-//         transition={{ duration: 0.25, ease: "easeOut" }}
-//         onClick={(e) => e.stopPropagation()}
-//       >
-//         <div className="flex items-center justify-between">
-//           <h2 className="text-xl font-bold flex items-center gap-2">
-//             <FiLock size={18} /> Change Password
-//           </h2>
-//           <button className="btn btn-ghost btn-sm btn-circle" onClick={onClose}>
-//             <FiX size={16} />
-//           </button>
-//         </div>
-//         {/*
-//         <div className="divider my-0" /> */}
-
-//         <Formik
-//           initialValues={initialValues}
-//           validationSchema={confirmPasswordSchema}
-//           onSubmit={handleConfirmPassword}
-//         >
-//           {() => (
-//             <Form className="flex flex-col gap-4">
-//               <PasswordInput
-//                 password="currentPassword"
-//                 placeholder="Current password"
-//                 label="Current Password"
-//               />
-//               <PasswordInput
-//                 password="newPassword"
-//                 placeholder="New password"
-//                 label="New Password"
-//               />
-//               <PasswordInput
-//                 password="confirmPassword"
-//                 placeholder="Confirm new password"
-//                 label="Confirm New Password"
-//               />
-
-//               <Motion.button
-//                 type="submit"
-//                 className="btn btn-warning w-full"
-//                 disabled={passwordMutation.isPending}
-//                 whileTap={{ scale: 0.97 }}
-//                 transition={{ duration: 0.1 }}
-//               >
-//                 {passwordMutation.isPending && (
-//                   <span className="loading loading-spinner loading-sm" />
-//                 )}
-//                 {passwordMutation.isPending ? "Updating..." : "Update Password"}
-//               </Motion.button>
-//             </Form>
-//           )}
-//         </Formik>
-//       </Motion.div>
-//     </Motion.div>
-//   );
-// };
-
-// export default ProfilePasswordChange;
-
-import { Formik, Form } from "formik";
-import { FiLock, FiX } from "react-icons/fi";
+import { useEffect, useId, useRef } from "react";
+import { Form, Formik } from "formik";
 import { motion } from "framer-motion";
-import { changePasswordSchema } from "../../utils/validation";
+import { FiLock, FiX } from "react-icons/fi";
 import PasswordInput from "../../components/common/PasswordInput";
 import { useChangePasswordMutation } from "../../hooks/auth/useAuthMutation";
+import { changePasswordSchema } from "../../utils/validation";
 
 const Motion = motion;
 
 const ProfilePasswordChange = ({ isOpen, onClose }) => {
   const passwordMutation = useChangePasswordMutation();
+  const closeButtonRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  const pendingRef = useRef(passwordMutation.isPending);
+  const titleId = useId();
 
-  const initialValues = {
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: "",
-  };
+  useEffect(() => {
+    onCloseRef.current = onClose;
+    pendingRef.current = passwordMutation.isPending;
+  }, [onClose, passwordMutation.isPending]);
 
-  const handleSubmit = (values) => {
-    const { currentPassword, newPassword } = values;
-    passwordMutation.mutate({ currentPassword, newPassword });
-  };
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const previousFocus = document.activeElement;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    closeButtonRef.current?.focus();
+
+    const handleKeyDown = (event) => {
+      if (event.key === "Escape" && !pendingRef.current) {
+        onCloseRef.current();
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = previousOverflow;
+      previousFocus?.focus();
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
+  const handleSubmit = ({ currentPassword, newPassword }) => {
+    passwordMutation.mutate(
+      { currentPassword, newPassword },
+      { onSuccess: onClose },
+    );
+  };
+
   return (
     <Motion.div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center px-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={onClose}
     >
-      <Motion.div
-        className="relative bg-base-100 rounded-2xl shadow-2xl w-full max-w-sm p-6 flex flex-col gap-5"
+      <button
+        type="button"
+        className="absolute inset-0 h-full w-full cursor-default bg-black/40 backdrop-blur-sm"
+        aria-label="Close password dialog"
+        onClick={onClose}
+        disabled={passwordMutation.isPending}
+      />
+      <Motion.section
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        className="relative flex max-h-[calc(100dvh-2rem)] w-full max-w-sm flex-col gap-5 overflow-y-auto rounded-2xl bg-base-100 p-5 shadow-2xl sm:p-6"
         initial={{ opacity: 0, scale: 0.95, y: 16 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 16 }}
-        onClick={(e) => e.stopPropagation()}
       >
-        {/* Loading Overlay */}
-        {passwordMutation.isPending && (
-          <div className="absolute inset-0 bg-white/50 flex items-center justify-center rounded-2xl z-10">
-            <span className="loading loading-spinner" />
-          </div>
-        )}
-
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="text-xl font-bold flex items-center gap-2">
-            <FiLock size={18} /> Change Password
-          </div>
-          <button className="btn btn-ghost btn-sm btn-circle" onClick={onClose}>
-            <FiX size={16} />
+        <div className="flex items-center justify-between gap-3">
+          <h2
+            id={titleId}
+            className="flex items-center gap-2 text-xl font-bold"
+          >
+            <FiLock aria-hidden="true" size={18} /> Change password
+          </h2>
+          <button
+            ref={closeButtonRef}
+            type="button"
+            className="btn btn-circle btn-ghost btn-sm"
+            aria-label="Close password dialog"
+            onClick={onClose}
+            disabled={passwordMutation.isPending}
+          >
+            <FiX aria-hidden="true" size={16} />
           </button>
         </div>
-
-        {/* Form */}
         <Formik
-          initialValues={initialValues}
+          initialValues={{
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          }}
           validationSchema={changePasswordSchema}
           onSubmit={handleSubmit}
         >
           <Form className="flex flex-col gap-4">
             <PasswordInput
-              password="currentPassword"
-              placeholder="Current password"
-              label="Current Password"
+              name="currentPassword"
+              label="Current password"
+              placeholder="Enter your current password"
+              autoComplete="current-password"
             />
             <PasswordInput
-              password="newPassword"
-              placeholder="New password"
-              label="New Password"
+              name="newPassword"
+              label="New password"
+              placeholder="Create a new password"
+              autoComplete="new-password"
             />
             <PasswordInput
-              password="confirmPassword"
-              placeholder="Confirm new password"
-              label="Confirm New Password"
+              name="confirmPassword"
+              label="Confirm new password"
+              placeholder="Repeat your new password"
+              autoComplete="new-password"
             />
-
-            <Motion.button
+            <button
               type="submit"
               className="btn btn-warning w-full"
               disabled={passwordMutation.isPending}
-              whileTap={{ scale: 0.97 }}
             >
-              {passwordMutation.isPending ? "Updating..." : "Update Password"}
-            </Motion.button>
+              {passwordMutation.isPending ? (
+                <>
+                  <span
+                    role="status"
+                    aria-label="Updating password"
+                    className="loading loading-spinner loading-sm"
+                  />{" "}
+                  Updating...
+                </>
+              ) : (
+                "Update password"
+              )}
+            </button>
           </Form>
         </Formik>
-      </Motion.div>
+      </Motion.section>
     </Motion.div>
   );
 };

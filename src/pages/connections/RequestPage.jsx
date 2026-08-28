@@ -1,90 +1,64 @@
-import { HiUserGroup, HiCheck, HiX } from "react-icons/hi";
+import { useState } from "react";
+import { HiUserGroup } from "react-icons/hi";
+import EmptyState from "../../components/common/EmptyState";
+import ErrorPage from "../../components/common/ErrorPage";
+import PageLoader from "../../components/common/PageLoader";
+import UserCard from "../../components/common/UserCard";
 import {
   useConnectionRequests,
   useReviewConnectionRequest,
 } from "../../hooks/connections/useConnections";
-import UserCard from "../../components/common/UserCard";
-import ErrorPage from "../../components/common/ErrorPage";
-import { useState } from "react";
 
 const RequestsPage = () => {
-  const { data: requests, isLoading, error } = useConnectionRequests();
+  const { data: requests, isLoading, error, refetch } = useConnectionRequests();
   const reviewRequestMutation = useReviewConnectionRequest();
-
   const [pendingAction, setPendingAction] = useState(null);
 
   const handleReview = (requestId, status) => {
     if (pendingAction) return;
-    setPendingAction({ id: requestId, type: status });
-
+    setPendingAction({ id: requestId, status });
     reviewRequestMutation.mutate(
       { status, requestId },
-      {
-        onSettled: () => setPendingAction(null),
-        onError: () => alert("Something went wrong. Please try again."),
-      },
+      { onSettled: () => setPendingAction(null) },
     );
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <span className="loading loading-spinner loading-lg text-primary" />
-      </div>
-    );
-  }
-
+  if (isLoading) return <PageLoader label="Loading connection requests" />;
   if (error) {
     return (
       <ErrorPage
         code="500"
         message="Failed to load requests"
-        subMessage="Please refresh or try again later."
+        subMessage="Check your connection and try again."
+        onRetry={refetch}
+      />
+    );
+  }
+  if (!requests?.length) {
+    return (
+      <EmptyState
+        icon={HiUserGroup}
+        title="No requests yet"
+        description="New connection requests will appear here."
       />
     );
   }
 
-  if (!requests?.length) {
-    return (
-      // CHANGED: wrapped icon in a soft circular badge instead of a bare icon.
-      // A floating icon on its own looks unfinished; a contained badge reads
-      // as an intentional "empty state illustration" rather than a placeholder.
-      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center px-4">
-        <div className="flex items-center justify-center w-20 h-20 rounded-full bg-primary/10">
-          <HiUserGroup size={36} className="text-primary" />
-        </div>
-        <div className="space-y-1">
-          <h2 className="text-xl font-semibold text-base-content">
-            No requests yet
-          </h2>
-          <p className="text-sm text-base-content/60 max-w-xs">
-            When people send you connection requests, they'll show up here.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="max-w-3xl mx-auto py-10 px-4">
-      {/* CHANGED: header now sits inside a bottom-border block instead of
-          floating loose — gives the page a clear "section start" instead of
-          the title feeling disconnected from the list below it. */}
-      <div className="flex items-center justify-between gap-3 mb-6 pb-4 border-b border-base-200">
+    <section className="mx-auto max-w-3xl px-1 py-6 sm:px-4 sm:py-10">
+      <header className="mb-6 flex items-center justify-between gap-3 border-b border-base-200 pb-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-base-content">
+          <h1 className="text-2xl font-bold text-base-content sm:text-3xl">
             Requests
           </h1>
-          <p className="text-sm text-base-content/50 mt-0.5">
-            People who want to connect with you
+          <p className="mt-0.5 text-sm text-base-content/60">
+            Review people who want to connect with you.
           </p>
         </div>
-
         <span className="badge badge-primary badge-lg font-semibold">
           {requests.length}
         </span>
-      </div>
-
+      </header>
       <div className="flex flex-col gap-3">
         {requests.map((request) => (
           <UserCard
@@ -97,7 +71,7 @@ const RequestsPage = () => {
           />
         ))}
       </div>
-    </div>
+    </section>
   );
 };
 

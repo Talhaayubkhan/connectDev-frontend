@@ -1,59 +1,76 @@
-import { Routes, Route, Navigate } from "react-router-dom"; // ← add Navigate
-import MainLayout from "../layouts/MainLayout";
-import AuthLayout from "../layouts/AuthLayout";
-import LoginPage from "../pages/auth/LoginPage";
-import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
-import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
-import FeedPage from "../pages/feed/FeedPage";
-import ProfilePage from "../pages/profile/ProfilePage";
-import ErrorPage from "../components/common/ErrorPage";
+import { lazy, Suspense } from "react";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
-import ConnectionsPage from "../pages/connections/ConnectionsPage";
-import RequestPage from "../pages/connections/RequestPage";
-import UniqueProfile from "../pages/profile/UniqueProfile";
+import ErrorPage from "../components/common/ErrorPage";
+import PageLoader from "../components/common/PageLoader";
+import AuthLayout from "../layouts/AuthLayout";
+import MainLayout from "../layouts/MainLayout";
+import { ROUTES } from "../utils/constants";
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 
-const AppRoutes = () => {
-  return (
-    <>
+const LoginPage = lazy(() => import("../pages/auth/LoginPage"));
+const ForgotPasswordPage = lazy(
+  () => import("../pages/auth/ForgotPasswordPage"),
+);
+const ResetPasswordPage = lazy(
+  () => import("../pages/auth/ResetPasswordPage"),
+);
+const FeedPage = lazy(() => import("../pages/feed/FeedPage"));
+const ProfilePage = lazy(() => import("../pages/profile/ProfilePage"));
+const ConnectionsPage = lazy(
+  () => import("../pages/connections/ConnectionsPage"),
+);
+const RequestPage = lazy(
+  () => import("../pages/connections/RequestPage"),
+);
+const UniqueProfile = lazy(
+  () => import("../pages/profile/UniqueProfile"),
+);
+
+const AppRoutes = () => (
+  <>
+    <Suspense fallback={<PageLoader label="Loading page" fullPage />}>
       <Routes>
-        {/* PUBLIC ROUTES */}
         <Route element={<PublicRoute />}>
-          <Route path="/auth" element={<AuthLayout />}>
-            <Route path="login" element={<LoginPage />} />
-            <Route path="forgot-password" element={<ForgotPasswordPage />} />
-            <Route path="reset-password" element={<ResetPasswordPage />} />
+          <Route path={ROUTES.AUTH} element={<AuthLayout />}>
+            <Route path={ROUTES.LOGIN} element={<LoginPage />} />
+            <Route
+              path={ROUTES.FORGOT_PASSWORD}
+              element={<ForgotPasswordPage />}
+            />
+            <Route
+              path={ROUTES.RESET_PASSWORD}
+              element={<ResetPasswordPage />}
+            />
           </Route>
         </Route>
 
-        {/* PROTECTED ROUTES */}
         <Route element={<ProtectedRoute />}>
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Navigate to="/feed" replace />} />
-            <Route path="feed" element={<FeedPage />} />
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="connections" element={<ConnectionsPage />} />
-            <Route path="requests" element={<RequestPage />} />
-            <Route path="profile/:userId" element={<UniqueProfile />} />
+          <Route path={ROUTES.HOME} element={<MainLayout />}>
+            <Route index element={<Navigate to={ROUTES.FEED} replace />} />
+            <Route path={ROUTES.FEED} element={<FeedPage />} />
+            <Route path={ROUTES.PROFILE} element={<ProfilePage />} />
+            <Route path={ROUTES.CONNECTIONS} element={<ConnectionsPage />} />
+            <Route path={ROUTES.REQUESTS} element={<RequestPage />} />
+            <Route path={`${ROUTES.PROFILE}/:userId`} element={<UniqueProfile />} />
           </Route>
         </Route>
 
-        <Route path="*" element={<ErrorPage />} />
+        <Route path="*" element={<ErrorPage fullPage />} />
       </Routes>
+    </Suspense>
 
-      <ToastContainer
-        position="top-center"
-        autoClose={1500}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={true}
-        pauseOnHover={true}
-        draggable={true}
-        theme="light"
-      />
-    </>
-  );
-};
+    <ToastContainer
+      position="top-center"
+      autoClose={2500}
+      newestOnTop
+      closeOnClick
+      pauseOnHover
+      draggable
+      theme="light"
+    />
+  </>
+);
 
 export default AppRoutes;

@@ -1,147 +1,80 @@
-﻿# connectDev — Frontend
+# ConnectDev frontend
 
-The React frontend for **connectDev**, a developer networking platform. Handles authentication, profiles, connections, real-time chat, and content discovery.
+ConnectDev is a responsive web app for discovering developers, managing a professional profile, and building a network through connection requests. This repository contains the React frontend. The API lives in the [ConnectDev backend repository](https://github.com/Talhaayubkhan/connectDev-backned).
 
 ## Features
 
-- **Authentication** — Secure login and registration with JWT-based session handling
-- **Profiles** — Create and manage your professional profile
-- **Connections** — Send, receive, and manage connection requests
-- **Real-time Chat** — Instant 1:1 messaging powered by Socket.IO
-- **Feed & Discovery** — Browse and interact with relevant developers
-- **Responsive** — Fully optimized for desktop, tablet, and mobile
+- Sign up, sign in, sign out, and password recovery
+- Protected routes backed by an HTTP-only cookie session
+- Developer discovery feed with connect and skip actions
+- Received request review and connection management
+- Public connection profiles and an editable personal profile
+- Responsive layouts, keyboard-friendly dialogs, and reduced-motion support
 
-## Tech Stack
+Chat is not currently implemented in this frontend.
 
-- **Framework:** React 18+
-- **Build Tool:** Vite
-- **HTTP Client:** Axios (configured in `services/apiClient.js`)
-- **State Management:** Context API / Redux
-- **Styling:** CSS
-- **Linting:** ESLint
+## Stack
 
-## Getting Started
+- React 19 and React Router
+- Vite 7
+- TanStack Query for server state
+- Axios for API requests
+- Formik and Yup for forms and validation
+- Tailwind CSS 4 and DaisyUI
+- Vitest and React Testing Library
 
-### Prerequisites
+## Local setup
 
-- Node.js v14+
-- npm or yarn
-
-### Installation
+Requirements: Node.js 22 or newer and npm.
 
 ```bash
-git clone https://github.com/your-username/connectDev-frontend.git
+git clone https://github.com/Talhaayubkhan/connectDev-frontend.git
 cd connectDev-frontend
-npm install
+npm ci
+cp .env.example .env
+npm run dev
 ```
 
-### Environment Setup
-
-Create a `.env` file in the project root:
+Configure the backend origin in `.env`:
 
 ```env
 VITE_API_BASE_URL=http://localhost:3000
 ```
 
-For production, set this to your deployed backend URL:
+The development server is available at `http://localhost:5173` by default. The frontend and backend origins must both allow credentialed requests because authentication uses an HTTP-only cookie.
 
-```env
-VITE_API_BASE_URL=https://your-api-domain.com
-```
+## Quality commands
 
-### Running the App
+| Command                 | Purpose                              |
+| ----------------------- | ------------------------------------ |
+| `npm run dev`           | Start the Vite development server    |
+| `npm run lint`          | Run ESLint                           |
+| `npm test`              | Run the Vitest suite once            |
+| `npm run test:watch`    | Run tests in watch mode              |
+| `npm run test:coverage` | Generate test coverage               |
+| `npm run build`         | Create a production build in `dist/` |
+| `npm run preview`       | Preview the production build         |
+| `npm run check`         | Run lint, tests, and build           |
 
-```bash
-# Development
-npm run dev
+## Architecture
 
-# Production build
-npm run build
+The main data path is `page -> query or mutation hook -> service -> apiClient`.
 
-# Preview production build locally
-npm run preview
-```
+- `src/pages`: route-level screens
+- `src/components`: shared UI and layouts
+- `src/hooks`: TanStack Query hooks and mutations
+- `src/services`: API client and endpoint functions
+- `src/routes`: lazy routes and access guards
+- `src/utils`: routes, query keys, and validation schemas
+- `src/test`: shared test setup and render helpers
 
-The dev server runs at `http://localhost:5173`.
+Server data belongs in TanStack Query. Local component state is used for temporary UI state such as open menus and form input.
 
-> **Note:** This project is currently in active development and not yet deployed to production. The build and preview scripts are available for local testing only.
+## Security notes
 
-## Project Structure
-
-```
-src/
-├── App.jsx                   # Root component
-├── main.jsx                  # Entry point
-├── index.css                 # Global styles
-│
-├── routes/
-│   ├── AppRoutes.jsx         # Route definitions
-│   ├── ProtectedRoute.jsx    # Redirects unauthenticated users to login
-│   └── PublicRoute.jsx       # Redirects authenticated users away from auth pages
-│
-├── layouts/
-│   ├── MainLayout.jsx        # Authenticated app shell (nav, sidebar)
-│   ├── AuthLayout.jsx        # Minimal layout for login/register
-│   └── ChatLayout.jsx        # Chat interface layout
-│
-├── pages/
-│   ├── auth/                 # Login, Register
-│   ├── feed/                 # Discovery feed
-│   ├── connections/          # Connections and requests
-│   └── profile/              # Profile view and edit
-│
-├── components/
-│   ├── common/               # Buttons, cards, inputs, modals
-│   └── layout/               # Header, sidebar, nav components
-│
-├── hooks/
-│   ├── auth/                 # useLogin, useRegister, etc.
-│   ├── chats/                # useMessages, useChatList, etc.
-│   ├── connections/          # useConnections, useRequests, etc.
-│   ├── feed/                 # useFeed
-│   └── profile/              # useProfile, useEditProfile
-│
-├── services/
-│   ├── apiClient.js          # Axios instance — base URL, interceptors, auth headers
-│   ├── auth/                 # Auth API calls
-│   ├── chats/                # Chat API calls
-│   ├── connections/          # Connection API calls
-│   ├── feed/                 # Feed API calls
-│   └── profile/              # Profile API calls
-│
-├── store/                    # Global state (Redux/Context)
-├── utils/                    # Shared utility functions
-└── assets/                   # Images, fonts, static files
-```
-
-**Architecture pattern:** `Page` → `Hook` → `Service` → `apiClient`
-
-Pages own layout and rendering; hooks manage state and side effects; services handle all API calls.
-
-## Authentication Flow
-
-1. User submits credentials on the login page
-2. The backend validates and sets a JWT httpOnly cookie
-3. Axios interceptors attach credentials to every subsequent request
-4. `ProtectedRoute` verifies auth state before rendering any guarded page
-5. Unauthenticated users are redirected to `/login`
-
-## Scripts
-
-| Script            | Description                                    |
-| ----------------- | ---------------------------------------------- |
-| `npm run dev`     | Start development server                       |
-| `npm run build`   | Create a production build (outputs to `dist/`) |
-| `npm run preview` | Serve the production build locally for testing |
-| `npm run lint`    | Run ESLint                                     |
-
-## Related
-
-[Backend Repository](../connectDev-backend) — Node.js / Express / Socket.IO API
-
-## Author
-
-**Talha Ayub** — [GitHub](https://github.com/your-username)
+- Do not commit `.env` files.
+- Keep `VITE_API_BASE_URL` limited to the API origin. Vite variables are public in the browser bundle, so never put secrets in them.
+- The Axios client sends credentials and applies a request timeout. Authorization remains enforced by the backend.
 
 ## License
 

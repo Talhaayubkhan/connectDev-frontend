@@ -1,57 +1,34 @@
-import { FaTwitter, FaYoutube, FaFacebook, FaAtom } from "react-icons/fa";
+import { FaGithub } from "react-icons/fa";
+import { HiCode } from "react-icons/hi";
 
-const Footer = () => {
-  return (
-    <footer className="bg-base-300 text-base-content border-t border-base-200 mt-10">
-      <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
-        {/* LEFT - Branding */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-primary/10">
-            <FaAtom className="text-xl text-primary" />
-          </div>
-
-          <div>
-            <h2 className="text-sm font-semibold">DevConnect</h2>
-            <p className="text-xs opacity-60">
-              Build meaningful developer connections
-            </p>
-          </div>
-        </div>
-
-        {/* CENTER - Links */}
-        <div className="flex flex-wrap gap-4 text-sm justify-center md:justify-start">
-          <a className="hover:text-primary transition cursor-pointer">About</a>
-          <a className="hover:text-primary transition cursor-pointer">
-            Privacy
-          </a>
-          <a className="hover:text-primary transition cursor-pointer">Terms</a>
-          <a className="hover:text-primary transition cursor-pointer">
-            Contact
-          </a>
-        </div>
-
-        {/* RIGHT - Socials */}
-        <div className="flex gap-4 justify-center md:justify-end text-lg">
-          <a className="p-2 rounded-full hover:bg-base-200 hover:text-primary transition cursor-pointer">
-            <FaTwitter />
-          </a>
-
-          <a className="p-2 rounded-full hover:bg-base-200 hover:text-primary transition cursor-pointer">
-            <FaYoutube />
-          </a>
-
-          <a className="p-2 rounded-full hover:bg-base-200 hover:text-primary transition cursor-pointer">
-            <FaFacebook />
-          </a>
+const Footer = () => (
+  <footer className="mt-10 border-t border-base-200 bg-base-300 text-base-content">
+    <div className="mx-auto flex max-w-6xl flex-col items-center gap-5 px-4 py-7 text-center sm:flex-row sm:justify-between sm:text-left">
+      <div className="flex items-center gap-3">
+        <span className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <HiCode aria-hidden="true" size={22} />
+        </span>
+        <div>
+          <p className="text-sm font-semibold">Connect_DEV</p>
+          <p className="text-xs text-base-content/60">
+            Build meaningful developer connections.
+          </p>
         </div>
       </div>
-
-      {/* Bottom line */}
-      <div className="text-center text-xs opacity-60 pb-4">
-        © {new Date().getFullYear()} DevConnect. All rights reserved.
-      </div>
-    </footer>
-  );
-};
+      <a
+        href="https://github.com/Talhaayubkhan/connectDev-frontend"
+        target="_blank"
+        rel="noreferrer"
+        className="btn btn-circle btn-ghost"
+        aria-label="View ConnectDev frontend on GitHub"
+      >
+        <FaGithub aria-hidden="true" size={20} />
+      </a>
+    </div>
+    <p className="pb-4 text-center text-xs text-base-content/60">
+      © {new Date().getFullYear()} Connect_DEV.
+    </p>
+  </footer>
+);
 
 export default Footer;

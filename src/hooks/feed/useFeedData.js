@@ -4,16 +4,15 @@ import {
   reviewFeedRequests,
 } from "../../services/feed/feedService";
 import { toast } from "react-toastify";
+import { QUERY_KEYS } from "../../utils/constants";
+import { getErrorMessage } from "../../services/apiError";
 
 export const useFeedQuery = () => {
   return useQuery({
-    queryKey: ["feed"],
+    queryKey: QUERY_KEYS.feed,
     queryFn: async () => {
       try {
         const result = await fetchFeedProfiles();
-        // WHY return whole result and not just users?
-        // We need hasNextPage for future pagination.
-        // Cache stores { users: [...], hasNextPage, page, limit }
         return result;
       } catch (err) {
         if (err?.response?.status === 404)
@@ -32,10 +31,7 @@ export const useFeedRequestMutation = () => {
       reviewFeedRequests({ status, requestId }),
 
     onSuccess: (_, variables) => {
-      // WHY setQueryData instead of invalidateQueries?
-      // invalidateQueries = refetch entire feed → array rebuilds → counter resets
-      // setQueryData = remove just acted-on profile from cache → no refetch → smooth
-      queryClient.setQueryData(["feed"], (oldData) => {
+      queryClient.setQueryData(QUERY_KEYS.feed, (oldData) => {
         if (!oldData) return { users: [], hasNextPage: false };
         return {
           ...oldData,
@@ -54,7 +50,7 @@ export const useFeedRequestMutation = () => {
     },
 
     onError: (error) => {
-      toast.error(error?.response?.data?.message || "Action failed.");
+      toast.error(getErrorMessage(error, "Action failed."));
     },
   });
 };

@@ -39,7 +39,6 @@ export const changePassword = async ({ currentPassword, newPassword }) => {
 
 export const forgotPassword = async ({ email }) => {
   const response = await apiClient.post("auth/forgot-password", { email });
-  console.log(response?.data);
   return response.data;
 };
 
@@ -53,7 +52,5 @@ export const resetPassword = async ({
     newPassword,
     confirmPassword,
   });
-  console.log(response?.data?.data);
-
   return response?.data?.data;
 };

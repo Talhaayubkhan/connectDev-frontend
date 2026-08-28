@@ -1,6 +1,4 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { clearUser } from "../../store/features/auth/authSlice";
-import { useDispatch } from "react-redux";
 import {
   changePassword,
   forgotPassword,
@@ -11,7 +9,8 @@ import {
 } from "../../services/auth/userAuth";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import { ROUTES } from "../../utils/constants";
+import { QUERY_KEYS, ROUTES } from "../../utils/constants";
+import { getErrorMessage } from "../../services/apiError";
 
 export const useLoginMutation = () => {
   const navigate = useNavigate();
@@ -20,13 +19,8 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: loginUser,
     onSuccess: (user) => {
-      // WHY setQueryData instead of dispatch(setUser)?
-      // React Query is now the single source of truth.
-      // Setting the cache here means ProtectedRoute, Navbar,
-      // ProfilePage — all instantly get the user WITHOUT
-      // an extra API call. No flicker, no double fetch.
-      queryClient.setQueryData(["profile"], user);
-      navigate("/feed", { replace: true });
+      queryClient.setQueryData(QUERY_KEYS.profile, user);
+      navigate(ROUTES.FEED, { replace: true });
     },
   });
 };
@@ -38,21 +32,15 @@ export const useSignupMutation = () => {
 };
 
 export const useLogoutMutation = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: logoutUser,
     onSuccess: () => {
-      // WHY clear both?
-      // queryClient.clear() wipes ALL cached data (profile, feed, etc.)
-      // dispatch(clearUser()) resets Redux (kept for any Redux-dependent logic)
-      // Together they ensure zero stale data remains after logout
-      dispatch(clearUser());
       queryClient.clear();
       toast.success("Logged out successfully");
-      navigate(ROUTES.LOGIN);
+      navigate(ROUTES.LOGIN, { replace: true });
     },
     onError: () => {
       toast.error("Logout failed. Please try again.");
@@ -61,7 +49,6 @@ export const useLogoutMutation = () => {
 };
 
 export const useChangePasswordMutation = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -69,14 +56,11 @@ export const useChangePasswordMutation = () => {
     mutationFn: changePassword,
     onSuccess: () => {
       toast.success("Password changed. Please login again.");
-      dispatch(clearUser());
       queryClient.clear();
-      navigate(ROUTES.LOGIN);
+      navigate(ROUTES.LOGIN, { replace: true });
     },
     onError: (error) => {
-      const message =
-        error?.response?.data?.message || "Password change failed.";
-      toast.error(message);
+      toast.error(getErrorMessage(error, "Password change failed."));
     },
   });
 };
@@ -88,9 +72,7 @@ export const useForgotPasswordMutation = () => {
       toast.success("Reset link sent! Check your inbox.");
     },
     onError: (error) => {
-      const message =
-        error?.response?.data?.message || "Something went wrong. Try again.";
-      toast.error(message);
+      toast.error(getErrorMessage(error, "Something went wrong. Try again."));
     },
   });
 };
@@ -102,12 +84,10 @@ export const useResetPasswordMutation = () => {
     mutationFn: (data) => resetPassword(data),
     onSuccess: () => {
       toast.success("Password reset! Please sign in.");
-      navigate(ROUTES.LOGIN);
+      navigate(ROUTES.LOGIN, { replace: true });
     },
     onError: (error) => {
-      const message =
-        error?.response?.data?.message || "Something went wrong. Try again.";
-      toast.error(message);
+      toast.error(getErrorMessage(error, "Something went wrong. Try again."));
     },
   });
 };

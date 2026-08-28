@@ -1,36 +1,51 @@
+import { useField } from "formik";
 import { useState } from "react";
-import { Field, ErrorMessage } from "formik";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-const PasswordInput = ({ password, placeholder }) => {
+const PasswordInput = ({
+  name,
+  password,
+  label,
+  placeholder,
+  autoComplete = "current-password",
+}) => {
+  const fieldName = name || password;
+  const [field, meta] = useField(fieldName);
   const [show, setShow] = useState(false);
+  const errorId = `${fieldName}-error`;
+  const hasError = meta.touched && Boolean(meta.error);
 
   return (
     <div className="flex flex-col gap-1">
+      <label htmlFor={fieldName} className="text-xs font-medium">
+        {label || placeholder}
+      </label>
       <div className="relative">
-        <Field
+        <input
+          {...field}
+          id={fieldName}
           type={show ? "text" : "password"}
-          name={password}
           placeholder={placeholder}
-          className="input input-bordered w-full pr-10"
+          autoComplete={autoComplete}
+          aria-invalid={hasError}
+          aria-describedby={hasError ? errorId : undefined}
+          className={`input input-bordered w-full pr-12 ${hasError ? "input-error" : ""}`}
         />
-        {/* A button makes this control keyboard-accessible and announces its state. */}
         <button
           type="button"
-          aria-label={show ? "Hide password" : "Show password"}
+          aria-label={show ? `Hide ${label || "password"}` : `Show ${label || "password"}`}
           aria-pressed={show}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-base-content/50 hover:text-base-content transition"
+          className="absolute inset-y-0 right-0 flex min-h-11 min-w-11 items-center justify-center text-base-content/60 transition hover:text-base-content"
           onClick={() => setShow((isVisible) => !isVisible)}
         >
-          {show ? <FaEyeSlash /> : <FaEye />}
+          {show ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}
         </button>
       </div>
-
-      <ErrorMessage
-        name={password}
-        component="div"
-        className="text-error text-xs mt-1"
-      />
+      {hasError && (
+        <p id={errorId} className="text-xs text-error">
+          {meta.error}
+        </p>
+      )}
     </div>
   );
 };

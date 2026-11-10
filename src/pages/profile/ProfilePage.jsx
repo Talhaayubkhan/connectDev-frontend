@@ -104,6 +104,7 @@ const ProfilePage = () => {
           validationSchema={editProfileSchema}
           onSubmit={(values) => updateMutation.mutate(values)}
         >
+<<<<<<< HEAD
           {({ values, setFieldValue, errors, touched }) => {
             const fieldError = (name) => touched[name] && errors[name];
             const addSkill = () => {
@@ -125,6 +126,40 @@ const ProfilePage = () => {
               setSkillInput("");
               setSkillMessage("");
             };
+=======
+          {({ values, setFieldValue, errors, touched }) => (
+            <div className="flex flex-col lg:flex-row gap-8 items-start">
+              {/* Left: Edit Form */}
+              <div className="flex-1 min-w-0">
+                <div className="card bg-base-200 shadow-md hover:shadow-lg transition-shadow duration-200">
+                  <div className="card-body gap-6 p-6">
+                    <Form className="flex flex-col gap-5">
+                      {/* Name row */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <FieldGroup
+                          icon={FiUser}
+                          label="First name"
+                          error={touched.firstName && errors.firstName}
+                        >
+                          <Field
+                            name="firstName"
+                            placeholder="Your first name"
+                            className="input input-bordered w-full focus:input-primary transition-all duration-200"
+                          />
+                        </FieldGroup>
+                        <FieldGroup
+                          icon={FiUser}
+                          label="Last name"
+                          error={touched.lastName && errors.lastName}
+                        >
+                          <Field
+                            name="lastName"
+                            placeholder="Your last name"
+                            className="input input-bordered w-full focus:input-primary transition-all duration-200"
+                          />
+                        </FieldGroup>
+                      </div>
+>>>>>>> a489968 (fix: update frontend code overall and remove bugs)
 
             return (
               <div className="flex flex-col items-start gap-8 lg:flex-row">

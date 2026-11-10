@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
   FiArrowLeft,
   FiBriefcase,
@@ -6,6 +7,10 @@ import {
   FiUser,
 } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
+=======
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";
+>>>>>>> a489968 (fix: update frontend code overall and remove bugs)
 import ErrorPage from "../../components/common/ErrorPage";
 import PageLoader from "../../components/common/PageLoader";
 import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";

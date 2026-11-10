@@ -19,8 +19,18 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: loginUser,
     onSuccess: (user) => {
+<<<<<<< HEAD
       queryClient.setQueryData(QUERY_KEYS.profile, user);
       navigate(ROUTES.FEED, { replace: true });
+=======
+      // WHY setQueryData instead of dispatch(setUser)?
+      // React Query is now the single source of truth.
+      // Setting the cache here means ProtectedRoute, Navbar,
+      // ProfilePage — all instantly get the user WITHOUT
+      // an extra API call. No flicker, no double fetch.
+      queryClient.setQueryData(["profile"], user);
+      navigate("/feed", { replace: true });
+>>>>>>> a489968 (fix: update frontend code overall and remove bugs)
     },
   });
 };

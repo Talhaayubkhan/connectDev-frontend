@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 import { useEffect, useId, useRef } from "react";
 import { Form, Formik } from "formik";
+=======
+import { Formik, Form } from "formik";
+import { FiLock, FiX } from "react-icons/fi";
+>>>>>>> a489968 (fix: update frontend code overall and remove bugs)
 import { motion } from "framer-motion";
 import { FiLock, FiX } from "react-icons/fi";
 import PasswordInput from "../../components/common/PasswordInput";

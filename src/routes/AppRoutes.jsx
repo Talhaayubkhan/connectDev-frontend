@@ -1,5 +1,17 @@
+<<<<<<< HEAD
 import { lazy, Suspense } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
+=======
+import { Routes, Route, Navigate } from "react-router-dom";
+import MainLayout from "../layouts/MainLayout";
+import AuthLayout from "../layouts/AuthLayout";
+import LoginPage from "../pages/auth/LoginPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "../pages/auth/ResetPasswordPage";
+import FeedPage from "../pages/feed/FeedPage";
+import ProfilePage from "../pages/profile/ProfilePage";
+import ErrorPage from "../components/common/ErrorPage";
+>>>>>>> a489968 (fix: update frontend code overall and remove bugs)
 import { ToastContainer } from "react-toastify";
 import ErrorPage from "../components/common/ErrorPage";
 import PageLoader from "../components/common/PageLoader";

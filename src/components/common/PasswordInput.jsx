@@ -1,7 +1,4 @@
-<<<<<<< HEAD
 import { useField } from "formik";
-=======
->>>>>>> a489968 (fix: update frontend code overall and remove bugs)
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
@@ -36,12 +33,18 @@ const PasswordInput = ({
         />
         <button
           type="button"
-          aria-label={show ? `Hide ${label || "password"}` : `Show ${label || "password"}`}
+          aria-label={
+            show ? `Hide ${label || "password"}` : `Show ${label || "password"}`
+          }
           aria-pressed={show}
           className="absolute inset-y-0 right-0 flex min-h-11 min-w-11 items-center justify-center text-base-content/60 transition hover:text-base-content"
           onClick={() => setShow((isVisible) => !isVisible)}
         >
-          {show ? <FaEyeSlash aria-hidden="true" /> : <FaEye aria-hidden="true" />}
+          {show ? (
+            <FaEyeSlash aria-hidden="true" />
+          ) : (
+            <FaEye aria-hidden="true" />
+          )}
         </button>
       </div>
       {hasError && (

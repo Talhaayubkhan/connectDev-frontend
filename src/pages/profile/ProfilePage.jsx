@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Field, Form, Formik } from "formik";
 import { AnimatePresence } from "framer-motion";
 import { BsGenderAmbiguous } from "react-icons/bs";
+
 import {
   FiBriefcase,
   FiCalendar,
@@ -14,27 +15,36 @@ import {
   FiUser,
   FiX,
 } from "react-icons/fi";
+
 import ErrorPage from "../../components/common/ErrorPage";
 import PageLoader from "../../components/common/PageLoader";
 import ProfileCard from "../../components/common/ProfileCard";
+
 import { useShowProfile } from "../../hooks/profile/useShowProfile";
 import { useProfileUpdateMutation } from "../../hooks/profile/useUpdateMutation";
+
 import { DEFAULT_AVATAR, GENDER_OPTIONS } from "../../utils/constants";
 import { editProfileSchema } from "../../utils/validation";
+
 import ProfilePasswordChange from "./ProfilePasswordChange";
 
+// Reusable form field component
 const FieldGroup = ({ icon: Icon, id, label, children, error, optional }) => (
   <div className="flex flex-col gap-1.5">
     <label htmlFor={id} className="label py-0">
       <span className="label-text flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-base-content/60">
         {Icon && <Icon aria-hidden="true" size={12} />}
+
         {label}
+
         {optional && (
           <span className="ml-1 text-[10px] normal-case">(optional)</span>
         )}
       </span>
     </label>
+
     {children}
+
     {error && (
       <p id={`${id}-error`} role="alert" className="pl-1 text-xs text-error">
         {error}
@@ -43,11 +53,13 @@ const FieldGroup = ({ icon: Icon, id, label, children, error, optional }) => (
   </div>
 );
 
+// Reusable section divider
 const Divider = ({ children }) => (
   <div className="relative my-1">
     <div className="absolute inset-0 flex items-center">
       <div className="w-full border-t border-base-300" />
     </div>
+
     <div className="relative flex justify-center">
       <span className="bg-base-200 px-3 text-[11px] uppercase tracking-wider text-base-content/50">
         {children}
@@ -58,13 +70,18 @@ const Divider = ({ children }) => (
 
 const ProfilePage = () => {
   const { data: user, isLoading, error, refetch } = useShowProfile();
+
   const [skillInput, setSkillInput] = useState("");
   const [skillMessage, setSkillMessage] = useState("");
   const [showPasswordModal, setShowPasswordModal] = useState(false);
+
   const updateMutation = useProfileUpdateMutation();
 
-  if (isLoading) return <PageLoader label="Loading your profile" />;
-  if (error)
+  if (isLoading) {
+    return <PageLoader label="Loading your profile" />;
+  }
+
+  if (error) {
     return (
       <ErrorPage
         code="500"
@@ -73,12 +90,14 @@ const ProfilePage = () => {
         onRetry={refetch}
       />
     );
+  }
+
   if (!user) return null;
 
   const initialValues = {
     firstName: user.firstName || "",
     lastName: user.lastName || "",
-    age: user.age || "",
+    age: user.age ?? "",
     gender: user.gender || "",
     about: user.about || "",
     photoURL: user.photoURL || "",
@@ -90,9 +109,12 @@ const ProfilePage = () => {
   return (
     <main className="min-h-[calc(100dvh-4rem)] bg-base-100 px-1 py-6 sm:px-4">
       <div className="mx-auto max-w-6xl">
+        {/* Page Header */}
         <header className="mb-8">
           <h1 className="text-2xl font-bold">Profile</h1>
+
           <div className="mt-2 h-0.5 w-12 rounded-full bg-primary/40" />
+
           <p className="mt-3 text-sm text-base-content/60">
             Keep your developer profile accurate and useful.
           </p>
@@ -104,65 +126,38 @@ const ProfilePage = () => {
           validationSchema={editProfileSchema}
           onSubmit={(values) => updateMutation.mutate(values)}
         >
-<<<<<<< HEAD
           {({ values, setFieldValue, errors, touched }) => {
             const fieldError = (name) => touched[name] && errors[name];
+
+            // Add skill with validation
             const addSkill = () => {
               const trimmed = skillInput.trim();
+
               if (!trimmed) return;
+
               if (values.skills.length >= 15) {
                 setSkillMessage("You can add up to 15 skills.");
                 return;
               }
-              if (
-                values.skills.some(
-                  (skill) => skill.toLowerCase() === trimmed.toLowerCase(),
-                )
-              ) {
+
+              const alreadyExists = values.skills.some(
+                (skill) => skill.toLowerCase() === trimmed.toLowerCase(),
+              );
+
+              if (alreadyExists) {
                 setSkillMessage("That skill is already listed.");
                 return;
               }
+
               setFieldValue("skills", [...values.skills, trimmed]);
+
               setSkillInput("");
               setSkillMessage("");
             };
-=======
-          {({ values, setFieldValue, errors, touched }) => (
-            <div className="flex flex-col lg:flex-row gap-8 items-start">
-              {/* Left: Edit Form */}
-              <div className="flex-1 min-w-0">
-                <div className="card bg-base-200 shadow-md hover:shadow-lg transition-shadow duration-200">
-                  <div className="card-body gap-6 p-6">
-                    <Form className="flex flex-col gap-5">
-                      {/* Name row */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <FieldGroup
-                          icon={FiUser}
-                          label="First name"
-                          error={touched.firstName && errors.firstName}
-                        >
-                          <Field
-                            name="firstName"
-                            placeholder="Your first name"
-                            className="input input-bordered w-full focus:input-primary transition-all duration-200"
-                          />
-                        </FieldGroup>
-                        <FieldGroup
-                          icon={FiUser}
-                          label="Last name"
-                          error={touched.lastName && errors.lastName}
-                        >
-                          <Field
-                            name="lastName"
-                            placeholder="Your last name"
-                            className="input input-bordered w-full focus:input-primary transition-all duration-200"
-                          />
-                        </FieldGroup>
-                      </div>
->>>>>>> a489968 (fix: update frontend code overall and remove bugs)
 
             return (
               <div className="flex flex-col items-start gap-8 lg:flex-row">
+                {/* Left: Edit Profile Form */}
                 <section
                   aria-labelledby="edit-profile-heading"
                   className="min-w-0 flex-1"
@@ -172,7 +167,9 @@ const ProfilePage = () => {
                       <h2 id="edit-profile-heading" className="sr-only">
                         Edit profile
                       </h2>
+
                       <Form className="flex flex-col gap-5">
+                        {/* Name */}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <FieldGroup
                             icon={FiUser}
@@ -184,14 +181,10 @@ const ProfilePage = () => {
                               id="firstName"
                               name="firstName"
                               autoComplete="given-name"
-                              aria-describedby={
-                                fieldError("firstName")
-                                  ? "firstName-error"
-                                  : undefined
-                              }
                               className="input input-bordered w-full"
                             />
                           </FieldGroup>
+
                           <FieldGroup
                             icon={FiUser}
                             id="lastName"
@@ -202,16 +195,12 @@ const ProfilePage = () => {
                               id="lastName"
                               name="lastName"
                               autoComplete="family-name"
-                              aria-describedby={
-                                fieldError("lastName")
-                                  ? "lastName-error"
-                                  : undefined
-                              }
                               className="input input-bordered w-full"
                             />
                           </FieldGroup>
                         </div>
 
+                        {/* Personal Information */}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <FieldGroup
                             icon={FiCalendar}
@@ -227,12 +216,10 @@ const ProfilePage = () => {
                               min="18"
                               max="100"
                               inputMode="numeric"
-                              aria-describedby={
-                                fieldError("age") ? "age-error" : undefined
-                              }
                               className="input input-bordered w-full"
                             />
                           </FieldGroup>
+
                           <FieldGroup
                             icon={BsGenderAmbiguous}
                             id="gender"
@@ -244,11 +231,6 @@ const ProfilePage = () => {
                               id="gender"
                               as="select"
                               name="gender"
-                              aria-describedby={
-                                fieldError("gender")
-                                  ? "gender-error"
-                                  : undefined
-                              }
                               className="select select-bordered w-full"
                             >
                               {GENDER_OPTIONS.map((option) => (
@@ -260,6 +242,7 @@ const ProfilePage = () => {
                           </FieldGroup>
                         </div>
 
+                        {/* Profile Photo */}
                         <FieldGroup
                           icon={FiImage}
                           id="photoURL"
@@ -272,16 +255,13 @@ const ProfilePage = () => {
                             name="photoURL"
                             type="url"
                             placeholder={DEFAULT_AVATAR}
-                            aria-describedby={
-                              fieldError("photoURL")
-                                ? "photoURL-error"
-                                : undefined
-                            }
                             className="input input-bordered w-full font-mono text-sm"
                           />
                         </FieldGroup>
 
+                        {/* About */}
                         <Divider>About you</Divider>
+
                         <FieldGroup
                           icon={FiInfo}
                           id="about"
@@ -295,13 +275,11 @@ const ProfilePage = () => {
                             name="about"
                             rows={3}
                             placeholder="Write a short bio"
-                            aria-describedby={
-                              fieldError("about") ? "about-error" : undefined
-                            }
                             className="textarea textarea-bordered w-full resize-none"
                           />
                         </FieldGroup>
 
+                        {/* Location and Occupation */}
                         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                           <FieldGroup
                             icon={FiMapPin}
@@ -315,14 +293,10 @@ const ProfilePage = () => {
                               name="location"
                               autoComplete="address-level2"
                               placeholder="City, Country"
-                              aria-describedby={
-                                fieldError("location")
-                                  ? "location-error"
-                                  : undefined
-                              }
                               className="input input-bordered w-full"
                             />
                           </FieldGroup>
+
                           <FieldGroup
                             icon={FiBriefcase}
                             id="occupation"
@@ -335,17 +309,14 @@ const ProfilePage = () => {
                               name="occupation"
                               autoComplete="organization-title"
                               placeholder="Your role"
-                              aria-describedby={
-                                fieldError("occupation")
-                                  ? "occupation-error"
-                                  : undefined
-                              }
                               className="input input-bordered w-full"
                             />
                           </FieldGroup>
                         </div>
 
+                        {/* Skills */}
                         <Divider>Skills</Divider>
+
                         <div className="flex flex-col gap-3">
                           {values.skills.length > 0 && (
                             <div className="flex flex-wrap gap-2">
@@ -355,18 +326,20 @@ const ProfilePage = () => {
                                   className="badge badge-primary gap-1.5 px-3 py-3 text-xs font-normal"
                                 >
                                   {skill}
+
                                   <button
                                     type="button"
                                     aria-label={`Remove ${skill}`}
                                     className="rounded-full p-0.5"
-                                    onClick={() =>
+                                    onClick={() => {
                                       setFieldValue(
                                         "skills",
                                         values.skills.filter(
                                           (item) => item !== skill,
                                         ),
-                                      )
-                                    }
+                                      );
+                                      setSkillMessage("");
+                                    }}
                                   >
                                     <FiX aria-hidden="true" size={12} />
                                   </button>
@@ -374,9 +347,11 @@ const ProfilePage = () => {
                               ))}
                             </div>
                           )}
+
                           <label htmlFor="skillInput" className="sr-only">
                             Add a skill
                           </label>
+
                           <div className="flex flex-col gap-2 sm:flex-row">
                             <input
                               id="skillInput"
@@ -395,25 +370,30 @@ const ProfilePage = () => {
                               maxLength={30}
                               className="input input-bordered min-w-0 flex-1"
                             />
+
                             <button
                               type="button"
                               className="btn btn-outline btn-primary"
                               disabled={values.skills.length >= 15}
                               onClick={addSkill}
                             >
-                              <FiPlus aria-hidden="true" /> Add
+                              <FiPlus aria-hidden="true" />
+                              Add
                             </button>
                           </div>
+
                           {(skillMessage || fieldError("skills")) && (
                             <p role="alert" className="text-xs text-error">
                               {skillMessage || errors.skills}
                             </p>
                           )}
+
                           <p className="text-xs text-base-content/50">
                             {values.skills.length}/15 skills
                           </p>
                         </div>
 
+                        {/* Actions */}
                         <div className="mt-2 space-y-2">
                           <button
                             type="submit"
@@ -426,21 +406,24 @@ const ProfilePage = () => {
                                   role="status"
                                   aria-label="Saving profile"
                                   className="loading loading-spinner loading-sm"
-                                />{" "}
+                                />
                                 Saving...
                               </>
                             ) : (
                               <>
-                                <FiSave aria-hidden="true" /> Save changes
+                                <FiSave aria-hidden="true" />
+                                Save changes
                               </>
                             )}
                           </button>
+
                           <button
                             type="button"
                             className="btn btn-ghost w-full gap-2"
                             onClick={() => setShowPasswordModal(true)}
                           >
-                            <FiLock aria-hidden="true" /> Change password
+                            <FiLock aria-hidden="true" />
+                            Change password
                           </button>
                         </div>
                       </Form>
@@ -448,6 +431,7 @@ const ProfilePage = () => {
                   </div>
                 </section>
 
+                {/* Right: Live Profile Preview */}
                 <aside
                   aria-label="Live profile preview"
                   className="w-full lg:w-96 lg:flex-shrink-0"
@@ -456,6 +440,7 @@ const ProfilePage = () => {
                     <p className="mb-4 text-center text-xs font-medium uppercase tracking-widest text-base-content/50">
                       Live preview
                     </p>
+
                     <ProfileCard profile={values} showActions={false} />
                   </div>
                 </aside>
@@ -465,6 +450,7 @@ const ProfilePage = () => {
         </Formik>
       </div>
 
+      {/* Password Change Modal */}
       <AnimatePresence>
         {showPasswordModal && (
           <ProfilePasswordChange

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
   FiArrowLeft,
   FiBriefcase,
@@ -7,10 +6,7 @@ import {
   FiUser,
 } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
-=======
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";
->>>>>>> a489968 (fix: update frontend code overall and remove bugs)
+
 import ErrorPage from "../../components/common/ErrorPage";
 import PageLoader from "../../components/common/PageLoader";
 import { useUniqueProfile } from "../../hooks/profile/useShowUniqueProfile";
@@ -19,9 +15,12 @@ import { DEFAULT_AVATAR, ROUTES } from "../../utils/constants";
 const UniqueProfile = () => {
   const { userId } = useParams();
   const navigate = useNavigate();
+
   const { data, isLoading, error, refetch } = useUniqueProfile(userId);
 
-  if (isLoading) return <PageLoader label="Loading profile" />;
+  if (isLoading) {
+    return <PageLoader label="Loading profile" />;
+  }
 
   if (error?.response?.status === 403) {
     return (
@@ -30,10 +29,13 @@ const UniqueProfile = () => {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-warning/10">
             <FiLock aria-hidden="true" className="text-2xl text-warning" />
           </div>
+
           <h1 className="text-lg font-semibold">Profile restricted</h1>
+
           <p className="mt-2 text-sm text-base-content/60">
             You need to be connected to view this profile.
           </p>
+
           <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
             <button
               type="button"
@@ -42,6 +44,7 @@ const UniqueProfile = () => {
             >
               Go back
             </button>
+
             <button
               type="button"
               className="btn btn-primary btn-sm"
@@ -62,10 +65,13 @@ const UniqueProfile = () => {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-error/10">
             <FiUser aria-hidden="true" className="text-2xl text-error" />
           </div>
+
           <h1 className="text-lg font-semibold">User not found</h1>
+
           <p className="mt-2 text-sm text-base-content/60">
             This profile does not exist.
           </p>
+
           <button
             type="button"
             className="btn btn-primary btn-sm mt-6"
@@ -88,7 +94,10 @@ const UniqueProfile = () => {
       />
     );
   }
-  if (!data) return null;
+
+  if (!data) {
+    return null;
+  }
 
   const {
     firstName,
@@ -101,6 +110,7 @@ const UniqueProfile = () => {
     location,
     occupation,
   } = data;
+
   const fullName =
     [firstName, lastName].filter(Boolean).join(" ") || "Developer";
 
@@ -117,6 +127,7 @@ const UniqueProfile = () => {
             <FiArrowLeft aria-hidden="true" />
           </button>
         </div>
+
         <div className="relative px-4 pb-6 sm:px-6">
           <div className="relative -mt-12 mb-4 h-24 w-24 overflow-hidden rounded-full bg-base-200 ring-4 ring-base-100">
             <img
@@ -128,38 +139,49 @@ const UniqueProfile = () => {
               }}
             />
           </div>
+
           <h1 className="text-xl font-bold sm:text-2xl">{fullName}</h1>
+
           {(age || gender || location || occupation) && (
             <div className="mt-2 flex flex-wrap gap-3 text-sm text-base-content/60">
               {age && <span>{age} years</span>}
+
               {gender && <span className="capitalize">{gender}</span>}
+
               {location && (
                 <span className="flex items-center gap-1">
-                  <FiMapPin aria-hidden="true" /> {location}
+                  <FiMapPin aria-hidden="true" />
+                  {location}
                 </span>
               )}
+
               {occupation && (
                 <span className="flex items-center gap-1">
-                  <FiBriefcase aria-hidden="true" /> {occupation}
+                  <FiBriefcase aria-hidden="true" />
+                  {occupation}
                 </span>
               )}
             </div>
           )}
+
           {about && (
             <section className="mt-5">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-base-content/50">
                 About
               </h2>
+
               <p className="mt-2 text-sm leading-relaxed text-base-content/70">
                 {about}
               </p>
             </section>
           )}
+
           {skills?.length > 0 && (
             <section className="mt-5">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-base-content/50">
                 Skills
               </h2>
+
               <div className="mt-2 flex flex-wrap gap-2">
                 {skills.map((skill) => (
                   <span
@@ -172,13 +194,15 @@ const UniqueProfile = () => {
               </div>
             </section>
           )}
+
           <div className="mt-6 border-t border-base-200 pt-4">
             <button
               type="button"
               className="btn btn-ghost btn-sm"
               onClick={() => navigate(-1)}
             >
-              <FiArrowLeft aria-hidden="true" /> Back
+              <FiArrowLeft aria-hidden="true" />
+              Back
             </button>
           </div>
         </div>

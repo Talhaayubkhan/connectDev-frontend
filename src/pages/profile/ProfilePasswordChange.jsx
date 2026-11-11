@@ -1,23 +1,19 @@
-<<<<<<< HEAD
 import { useEffect, useId, useRef } from "react";
 import { Form, Formik } from "formik";
-=======
-import { Formik, Form } from "formik";
 import { FiLock, FiX } from "react-icons/fi";
->>>>>>> a489968 (fix: update frontend code overall and remove bugs)
 import { motion } from "framer-motion";
-import { FiLock, FiX } from "react-icons/fi";
+
 import PasswordInput from "../../components/common/PasswordInput";
 import { useChangePasswordMutation } from "../../hooks/auth/useAuthMutation";
 import { changePasswordSchema } from "../../utils/validation";
 
-const Motion = motion;
-
 const ProfilePasswordChange = ({ isOpen, onClose }) => {
   const passwordMutation = useChangePasswordMutation();
+
   const closeButtonRef = useRef(null);
   const onCloseRef = useRef(onClose);
   const pendingRef = useRef(passwordMutation.isPending);
+
   const titleId = useId();
 
   useEffect(() => {
@@ -27,8 +23,10 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (!isOpen) return undefined;
+
     const previousFocus = document.activeElement;
     const previousOverflow = document.body.style.overflow;
+
     document.body.style.overflow = "hidden";
     closeButtonRef.current?.focus();
 
@@ -37,11 +35,14 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
         onCloseRef.current();
       }
     };
+
     document.addEventListener("keydown", handleKeyDown);
 
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
+
       document.body.style.overflow = previousOverflow;
+
       previousFocus?.focus();
     };
   }, [isOpen]);
@@ -51,25 +52,36 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
   const handleSubmit = ({ currentPassword, newPassword }) => {
     passwordMutation.mutate(
       { currentPassword, newPassword },
-      { onSuccess: onClose },
+      {
+        onSuccess: onClose,
+      },
     );
   };
 
+  const handleClose = () => {
+    if (!passwordMutation.isPending) {
+      onClose();
+    }
+  };
+
   return (
-    <Motion.div
+    <motion.div
       className="fixed inset-0 z-50 flex items-center justify-center px-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
     >
+      {/* Backdrop */}
       <button
         type="button"
         className="absolute inset-0 h-full w-full cursor-default bg-black/40 backdrop-blur-sm"
         aria-label="Close password dialog"
-        onClick={onClose}
+        onClick={handleClose}
         disabled={passwordMutation.isPending}
       />
-      <Motion.section
+
+      {/* Modal */}
+      <motion.section
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -78,24 +90,29 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 16 }}
       >
+        {/* Header */}
         <div className="flex items-center justify-between gap-3">
           <h2
             id={titleId}
             className="flex items-center gap-2 text-xl font-bold"
           >
-            <FiLock aria-hidden="true" size={18} /> Change password
+            <FiLock aria-hidden="true" size={18} />
+            Change password
           </h2>
+
           <button
             ref={closeButtonRef}
             type="button"
             className="btn btn-circle btn-ghost btn-sm"
             aria-label="Close password dialog"
-            onClick={onClose}
+            onClick={handleClose}
             disabled={passwordMutation.isPending}
           >
             <FiX aria-hidden="true" size={16} />
           </button>
         </div>
+
+        {/* Password Form */}
         <Formik
           initialValues={{
             currentPassword: "",
@@ -112,18 +129,21 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
               placeholder="Enter your current password"
               autoComplete="current-password"
             />
+
             <PasswordInput
               name="newPassword"
               label="New password"
               placeholder="Create a new password"
               autoComplete="new-password"
             />
+
             <PasswordInput
               name="confirmPassword"
               label="Confirm new password"
               placeholder="Repeat your new password"
               autoComplete="new-password"
             />
+
             <button
               type="submit"
               className="btn btn-warning w-full"
@@ -135,7 +155,7 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
                     role="status"
                     aria-label="Updating password"
                     className="loading loading-spinner loading-sm"
-                  />{" "}
+                  />
                   Updating...
                 </>
               ) : (
@@ -144,8 +164,8 @@ const ProfilePasswordChange = ({ isOpen, onClose }) => {
             </button>
           </Form>
         </Formik>
-      </Motion.section>
-    </Motion.div>
+      </motion.section>
+    </motion.div>
   );
 };
 

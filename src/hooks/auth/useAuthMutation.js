@@ -1,4 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 import {
   changePassword,
   forgotPassword,
@@ -7,10 +10,9 @@ import {
   registerUser,
   resetPassword,
 } from "../../services/auth/userAuth";
-import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
-import { QUERY_KEYS, ROUTES } from "../../utils/constants";
+
 import { getErrorMessage } from "../../services/apiError";
+import { QUERY_KEYS, ROUTES } from "../../utils/constants";
 
 export const useLoginMutation = () => {
   const navigate = useNavigate();
@@ -19,18 +21,8 @@ export const useLoginMutation = () => {
   return useMutation({
     mutationFn: loginUser,
     onSuccess: (user) => {
-<<<<<<< HEAD
       queryClient.setQueryData(QUERY_KEYS.profile, user);
       navigate(ROUTES.FEED, { replace: true });
-=======
-      // WHY setQueryData instead of dispatch(setUser)?
-      // React Query is now the single source of truth.
-      // Setting the cache here means ProtectedRoute, Navbar,
-      // ProfilePage — all instantly get the user WITHOUT
-      // an extra API call. No flicker, no double fetch.
-      queryClient.setQueryData(["profile"], user);
-      navigate("/feed", { replace: true });
->>>>>>> a489968 (fix: update frontend code overall and remove bugs)
     },
   });
 };
@@ -77,7 +69,7 @@ export const useChangePasswordMutation = () => {
 
 export const useForgotPasswordMutation = () => {
   return useMutation({
-    mutationFn: (data) => forgotPassword(data),
+    mutationFn: forgotPassword,
     onSuccess: () => {
       toast.success("Reset link sent! Check your inbox.");
     },
@@ -91,7 +83,7 @@ export const useResetPasswordMutation = () => {
   const navigate = useNavigate();
 
   return useMutation({
-    mutationFn: (data) => resetPassword(data),
+    mutationFn: resetPassword,
     onSuccess: () => {
       toast.success("Password reset! Please sign in.");
       navigate(ROUTES.LOGIN, { replace: true });

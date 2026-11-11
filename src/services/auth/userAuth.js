@@ -52,9 +52,6 @@ export const resetPassword = async ({
     newPassword,
     confirmPassword,
   });
-<<<<<<< HEAD
-=======
 
->>>>>>> a489968 (fix: update frontend code overall and remove bugs)
   return response?.data?.data;
 };

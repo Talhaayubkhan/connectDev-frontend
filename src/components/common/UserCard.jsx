@@ -1,11 +1,7 @@
-<<<<<<< HEAD
-=======
 import { DEFAULT_AVATAR } from "../../utils/constants";
->>>>>>> a489968 (fix: update frontend code overall and remove bugs)
 import { BsGenderAmbiguous } from "react-icons/bs";
 import { FiBriefcase, FiCalendar, FiMapPin, FiUser } from "react-icons/fi";
 import { Link } from "react-router-dom";
-import { DEFAULT_AVATAR } from "../../utils/constants";
 
 const UserCard = ({
   data,

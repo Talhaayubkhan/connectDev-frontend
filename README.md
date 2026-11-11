@@ -1,6 +1,6 @@
 # ConnectDev frontend
 
-ConnectDev is a responsive web app for discovering developers, managing a professional profile, and building a network through connection requests. This repository contains the React frontend. The API lives in the [ConnectDev backend repository](https://github.com/Talhaayubkhan/connectDev-backned).
+ConnectDev is a responsive web app for discovering developers, managing a professional profile, and building a network through connection requests. This repository contains the React frontend. The API lives in the [ConnectDev backend repository](https://github.com/Talhaayubkhan/connectDev-backend).
 
 ## Features
 
@@ -69,6 +69,17 @@ The main data path is `page -> query or mutation hook -> service -> apiClient`.
 - `src/test`: shared test setup and render helpers
 
 Server data belongs in TanStack Query. Local component state is used for temporary UI state such as open menus and form input.
+
+## Project notes
+
+The former `docs/` folder contained an internal stability-hardening design and implementation plan, not documentation needed to run or use the app. Its main points are summarized here:
+
+- The frontend covers authentication and password recovery, developer discovery, connection requests, connections, and profiles. Chat is not implemented.
+- TanStack Query owns server state; API calls go through the credentialed Axios client and the backend's cookie-based authentication.
+- The UI should remain responsive and accessible, including keyboard-operable navigation and dialogs, clear form errors, and reduced-motion support.
+- Changes should include focused regression tests and be checked with lint, tests, and a production build. GitHub Actions runs these quality checks on pushes to `main` and pull requests.
+
+That plan was written during an earlier hardening effort and may mention issues or targets that have since changed. Use this README and the current source, package scripts, and workflow as the reference for the frontend's present behavior.
 
 ## Security notes
 

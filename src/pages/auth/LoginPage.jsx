@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Field, Form, Formik } from "formik";
+import { Form, Formik } from "formik";
 import { FiAlertCircle, FiCode, FiMail, FiUsers } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -10,119 +10,15 @@ import {
   useSignupMutation,
 } from "../../hooks/auth/useAuthMutation";
 import { loginSchema, registerSchema } from "../../utils/validation";
-import { ROUTES } from "../../utils/constants";
-
-const AUTH_MODE = {
-  LOGIN: "login",
-  REGISTER: "register",
-};
-
-const LOGIN_INITIAL_VALUES = {
-  email: "",
-  password: "",
-};
-
-const REGISTER_INITIAL_VALUES = {
-  firstName: "",
-  lastName: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-};
-
-const FEATURES = [
-  "Real-time chat and collaboration",
-  "Project discovery and team matching",
-  "Knowledge sharing and mentorship",
-];
-
-const STATS = [
-  { value: "5K+", label: "Active Members" },
-  { value: "200+", label: "Projects" },
-  { value: "50+", label: "Countries" },
-];
-
-const normalizeFieldErrors = (apiErrors, formValues) => {
-  if (!apiErrors || typeof apiErrors !== "object" || Array.isArray(apiErrors)) {
-    return {};
-  }
-
-  return Object.fromEntries(
-    Object.entries(apiErrors)
-      .filter(([fieldName]) =>
-        Object.prototype.hasOwnProperty.call(formValues, fieldName),
-      )
-      .map(([fieldName, message]) => [
-        fieldName,
-        Array.isArray(message) ? message.join(" ") : String(message),
-      ]),
-  );
-};
-
-const FieldError = ({ id, message }) => {
-  if (!message) return null;
-
-  return (
-    <div
-      id={id}
-      role="alert"
-      className="mt-1 flex items-center gap-1 text-xs text-error"
-    >
-      <FiAlertCircle aria-hidden="true" className="h-3 w-3 shrink-0" />
-
-      <span>{message}</span>
-    </div>
-  );
-};
-
-const TextInputField = ({
-  name,
-  label,
-  type = "text",
-  placeholder,
-  autoComplete,
-  icon: Icon,
-}) => (
-  <Field name={name}>
-    {({ field, meta }) => {
-      const hasError = Boolean(meta.touched && meta.error);
-      const errorId = `${name}-error`;
-
-      return (
-        <div>
-          <label htmlFor={name} className="label py-0 pb-1">
-            <span className="label-text text-xs">{label}</span>
-          </label>
-
-          <div className={Icon ? "relative" : undefined}>
-            {Icon && (
-              <Icon
-                aria-hidden="true"
-                className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-sm text-base-content/40"
-              />
-            )}
-
-            <input
-              {...field}
-              id={name}
-              type={type}
-              placeholder={placeholder}
-              autoComplete={autoComplete}
-              aria-invalid={hasError}
-              aria-describedby={hasError ? errorId : undefined}
-              spellCheck={type === "email" ? false : undefined}
-              className={`input input-bordered w-full ${
-                Icon ? "pl-9" : ""
-              } ${hasError ? "input-error" : ""}`}
-            />
-          </div>
-
-          <FieldError id={errorId} message={hasError ? meta.error : null} />
-        </div>
-      );
-    }}
-  </Field>
-);
+import {
+  AUTH_MODE,
+  FEATURES,
+  LOGIN_INITIAL_VALUES,
+  REGISTER_INITIAL_VALUES,
+  ROUTES,
+  STATS,
+} from "../../utils/constants";
+import TextInputField from "../../components/common/TextInputFields";
 
 const LoginPage = () => {
   const [mode, setMode] = useState(AUTH_MODE.LOGIN);
@@ -157,39 +53,31 @@ const LoginPage = () => {
 
         resetForm();
         toast.success("Welcome back!");
-
         return;
       }
 
-      const registrationPayload = {
+      await signupMutation.mutateAsync({
         firstName: values.firstName.trim(),
         lastName: values.lastName.trim(),
         email: values.email.trim().toLowerCase(),
         password: values.password,
         confirmPassword: values.confirmPassword,
-      };
-
-      await signupMutation.mutateAsync(registrationPayload);
+      });
 
       resetForm();
-
       toast.success("Account created successfully! Please sign in.");
-
       setMode(AUTH_MODE.LOGIN);
     } catch (error) {
       const responseData = error?.response?.data;
       const status = error?.response?.status;
 
-      if (submittedMode === AUTH_MODE.REGISTER) {
-        const fieldErrors = normalizeFieldErrors(responseData?.errors, values);
-
-        if (Object.keys(fieldErrors).length > 0) {
-          setErrors(fieldErrors);
-          return;
-        }
+      // Display backend validation errors through Formik.
+      if (submittedMode === AUTH_MODE.REGISTER && responseData?.errors) {
+        setErrors(responseData.errors);
+        return;
       }
 
-      // Keep login errors generic to avoid revealing registered emails.
+      // Display general server errors.
       const message =
         submittedMode === AUTH_MODE.LOGIN
           ? status === 400 || status === 401
@@ -348,15 +236,7 @@ const LoginPage = () => {
               validationSchema={isLogin ? loginSchema : registerSchema}
               onSubmit={handleSubmit}
             >
-              {({ errors, touched, isSubmitting }) => {
-                const passwordHasError = Boolean(
-                  touched.password && errors.password,
-                );
-
-                const confirmPasswordHasError = Boolean(
-                  touched.confirmPassword && errors.confirmPassword,
-                );
-
+              {({ isSubmitting }) => {
                 const submitPending = isSubmitting || isAnyRequestPending;
 
                 return (
@@ -391,64 +271,23 @@ const LoginPage = () => {
                     />
 
                     {/* Password */}
-                    <div>
-                      <label htmlFor="password" className="label py-0 pb-1">
-                        <span className="label-text text-xs">Password</span>
-                      </label>
-
-                      <PasswordInput
-                        password="password"
-                        id="password"
-                        placeholder="Enter your password"
-                        autoComplete={
-                          isLogin ? "current-password" : "new-password"
-                        }
-                        aria-invalid={passwordHasError}
-                        aria-describedby={
-                          passwordHasError ? "password-error" : undefined
-                        }
-                      />
-
-                      <FieldError
-                        id="password-error"
-                        message={passwordHasError ? errors.password : null}
-                      />
-                    </div>
+                    <PasswordInput
+                      name="password"
+                      label="Password"
+                      placeholder="Enter your password"
+                      autoComplete={
+                        isLogin ? "current-password" : "new-password"
+                      }
+                    />
 
                     {/* Confirm password */}
                     {!isLogin && (
-                      <div>
-                        <label
-                          htmlFor="confirmPassword"
-                          className="label py-0 pb-1"
-                        >
-                          <span className="label-text text-xs">
-                            Confirm password
-                          </span>
-                        </label>
-
-                        <PasswordInput
-                          password="confirmPassword"
-                          id="confirmPassword"
-                          placeholder="Confirm your password"
-                          autoComplete="new-password"
-                          aria-invalid={confirmPasswordHasError}
-                          aria-describedby={
-                            confirmPasswordHasError
-                              ? "confirmPassword-error"
-                              : undefined
-                          }
-                        />
-
-                        <FieldError
-                          id="confirmPassword-error"
-                          message={
-                            confirmPasswordHasError
-                              ? errors.confirmPassword
-                              : null
-                          }
-                        />
-                      </div>
+                      <PasswordInput
+                        name="confirmPassword"
+                        label="Confirm password"
+                        placeholder="Confirm your password"
+                        autoComplete="new-password"
+                      />
                     )}
 
                     {/* Forgot password */}
